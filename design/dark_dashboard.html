@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlossaHub v2.0 Enterprise - Firmware Localization & Release Hub</title>
+  <!-- Tailwind CSS CDN with dark mode support -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#f97316',
+              cyan: '#06b6d4',
+              obsidian: '#030712',
+              surface: '#0f172a',
+              surfaceAlt: '#1e293b',
+              border: '#1e293b',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 19px;
+      line-height: 1;
+    }
+    .material-symbols-outlined.filled {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #030712;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="bg-[#030712] text-[#f8fafc] font-sans antialiased min-h-screen flex selection:bg-orange-500/30 selection:text-orange-200">
+
+  <!-- 1. LEFT NAVIGATION SIDEBAR (240px) -->
+  <aside class="w-[240px] flex-shrink-0 bg-[#020617] border-r border-slate-800/80 flex flex-col justify-between h-screen sticky top-0 z-30 select-none">
+    <div class="flex flex-col">
+      <!-- Brand Header -->
+      <div class="h-16 flex items-center px-5 border-b border-slate-800/80 gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-bold">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-base tracking-tight text-white">GlossaHub</span>
+            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/30">v2.0</span>
+          </div>
+          <p class="text-[11px] font-medium text-slate-400 tracking-wide">Enterprise Firmware L10n</p>
+        </div>
+      </div>
+
+      <!-- Workspace Switcher Pill -->
+      <div class="p-3">
+        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition cursor-pointer">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-medium text-slate-200">Magene Smart Fleet</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="px-3 space-y-1">
+        <div class="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Navigation</div>
+        
+        <!-- Active Nav Item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-orange-500/10 text-orange-400 border-l-2 border-orange-500 font-medium text-xs tracking-tight shadow-sm shadow-orange-950/20 group">
+          <span class="material-symbols-outlined text-orange-400 filled">dashboard</span>
+          <span>Overview & Baselines</span>
+          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500"></span>
+        </a>
+
+        <!-- Inactive Nav Items -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 font-medium text-xs transition group">
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-slate-200">translate</span>
+          <span>CAT Translation Studio</span>
+          <span class="ml-auto text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">1.4k</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 font-medium text-xs transition group">
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-slate-200">difference</span>
+          <span>3D Diff Ledger</span>
+          <span class="ml-auto text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950/50 text-cyan-400 border border-cyan-800/40">+12</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 font-medium text-xs transition group">
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-slate-200">developer_board</span>
+          <span>Hardware Screen Lab</span>
+          <span class="ml-auto text-[10px] font-semibold text-amber-400 flex items-center gap-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            2 LCD
+          </span>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 font-medium text-xs transition group">
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-slate-200">auto_stories</span>
+          <span>Translation Memory Vault</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 font-medium text-xs transition group">
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-slate-200">verified_user</span>
+          <span>Audit & Release Gates</span>
+          <span class="ml-auto w-2 h-2 rounded-full bg-emerald-500"></span>
+        </a>
+      </nav>
+
+      <!-- System Quick Status -->
+      <div class="mt-6 mx-3 p-3 rounded-lg bg-slate-950 border border-slate-800/60">
+        <div class="flex items-center justify-between text-[11px] mb-2">
+          <span class="text-slate-400 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            DeepSeek-V3 Copilot
+          </span>
+          <span class="text-cyan-400 font-mono text-[10px]">Active</span>
+        </div>
+        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full w-[96.8%]"></div>
+        </div>
+        <div class="flex justify-between items-center mt-1.5 text-[10px] text-slate-400 font-mono">
+          <span>TM Match: 96.8%</span>
+          <span>Latency: 18ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Profile & Footer Actions -->
+    <div class="p-3 border-t border-slate-800/80">
+      <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 hover:border-slate-700 transition">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 flex items-center justify-center font-bold text-xs text-white ring-2 ring-slate-700">
+          JL
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-semibold text-slate-200 truncate">Jacko L.</div>
+          <div class="text-[10px] text-slate-400 truncate">Localization Director</div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 p-1">
+          <span class="material-symbols-outlined text-sm">settings</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <div class="flex-1 flex flex-col min-w-0 bg-[#030712]">
+    
+    <!-- 2. TOP BAR (glassmorphic #0f172a/80) -->
+    <header class="h-16 sticky top-0 z-20 bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 select-none">
+      <!-- Title & Breadcrumb -->
+      <div class="flex items-center gap-3">
+        <h1 class="font-bold text-base text-slate-100 tracking-tight">Firmware Localization Portfolio & Release Pipeline</h1>
+        <span class="text-slate-600">/</span>
+        <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Fleet Sync Live
+        </span>
+      </div>
+
+      <!-- Center / Right Actions & Search -->
+      <div class="flex items-center gap-4">
+        <!-- Command Search Bar -->
+        <div class="relative w-80">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
+          <input type="text" placeholder="Search firmware baseline, string ID, hex..." class="w-full bg-slate-950/80 border border-slate-800 rounded-lg pl-9 pr-14 py-2 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition">
+          <div class="absolute right-2 top-2">
+            <kbd class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60 shadow-sm">⌘K</kbd>
+          </div>
+        </div>
+
+        <div class="h-5 w-px bg-slate-800"></div>
+
+        <!-- Action Buttons -->
+        <button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition shadow-sm">
+          <span class="material-symbols-outlined text-xs text-slate-400">add_box</span>
+          <span>New Firmware Baseline</span>
+        </button>
+
+        <button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-950/40 border border-cyan-800/60 hover:bg-cyan-900/40 text-cyan-300 text-xs font-medium transition shadow-sm">
+          <span class="material-symbols-outlined text-xs text-cyan-400">smart_toy</span>
+          <span>Batch AI Translate</span>
+        </button>
+
+        <!-- Primary Accent CTA Button -->
+        <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-semibold shadow-lg shadow-orange-500/25 transition transform active:scale-95">
+          <span class="material-symbols-outlined text-sm">download</span>
+          <span>Export All C Headers (.h)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 3. MAIN DASHBOARD CONTENT -->
+    <main class="flex-1 p-8 space-y-6 overflow-y-auto max-w-[1440px]">
+      
+      <!-- Section A: Top 4 Executive KPI Cards -->
+      <section class="grid grid-cols-4 gap-5">
+        
+        <!-- Card 1: Total Strings Across Fleet -->
+        <div class="rounded-xl bg-[#0f172a]/90 border border-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-500/5 rounded-full blur-xl group-hover:bg-orange-500/10 transition"></div>
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Strings Across Fleet</span>
+              <span class="p-1.5 rounded-md bg-slate-800/70 text-slate-400">
+                <span class="material-symbols-outlined text-sm">list_alt</span>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-3xl font-extrabold tracking-tight text-white font-mono">14,820</span>
+              <span class="text-xs text-slate-400">keys</span>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">
+              <span class="material-symbols-outlined text-xs">trending_up</span>
+              +340 in v4.2
+            </span>
+            <span class="text-[11px] text-slate-400">Across 8 hardware devices</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Global Localization Coverage -->
+        <div class="rounded-xl bg-[#0f172a]/90 border border-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition"></div>
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Global Localization Coverage</div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold tracking-tight text-white font-mono">96.8%</span>
+              </div>
+            </div>
+            <!-- Circular SVG Ring -->
+            <div class="relative w-12 h-12 flex items-center justify-center">
+              <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-cyan-400" stroke-dasharray="96.8, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <span class="absolute text-[10px] font-mono font-bold text-cyan-400">97%</span>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">14 Target Languages</span>
+            <span class="text-cyan-400 font-medium">98.2% TM Verified</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Active Firmware Releases -->
+        <div class="rounded-xl bg-[#0f172a]/90 border border-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Active Firmware Releases</span>
+              <span class="p-1.5 rounded-md bg-slate-800/70 text-slate-400">
+                <span class="material-symbols-outlined text-sm">memory</span>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-3xl font-extrabold tracking-tight text-white font-mono">8</span>
+              <span class="text-xs text-slate-400">Devices</span>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">C606</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">C406 Pro</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">L508</span>
+              <span class="text-slate-400">+5</span>
+            </div>
+            <span class="text-emerald-400 font-semibold">2 Golden Sealed</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Hardware Buffer Overflows -->
+        <div class="rounded-xl bg-[#0f172a]/90 border border-rose-900/40 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-800/60 transition bg-gradient-to-br from-[#0f172a] to-rose-950/20">
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-medium uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                Hardware Buffer Overflows
+              </span>
+              <span class="p-1.5 rounded-md bg-rose-900/30 text-rose-400">
+                <span class="material-symbols-outlined text-sm">warning</span>
+              </span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-3xl font-extrabold tracking-tight text-rose-400 font-mono">2</span>
+              <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Critical Blockers</span>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-rose-900/30 flex items-center justify-between text-[11px]">
+            <span class="text-rose-400 font-medium">C606 LCD 2.4" Top Banner</span>
+            <button class="text-xs font-semibold text-rose-300 hover:text-white underline underline-offset-2">Inspect 2 Strings</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Section B: Middle Section - Firmware Baselines & Release Pipeline Matrix -->
+      <section class="rounded-xl bg-[#0f172a]/90 border border-slate-800 overflow-hidden shadow-sm">
+        
+        <!-- Header & Filter Row -->
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-bold text-sm text-slate-100">Firmware Baselines & Stage-Gate Release Pipeline</h2>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">4 Active Projects</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time status of embedded C headers, localization completion, and hardware constraints.</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs font-medium text-slate-400">
+              <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 shadow-sm">All Hardware</button>
+              <button class="px-2.5 py-1 rounded hover:text-slate-200">Bike Computers</button>
+              <button class="px-2.5 py-1 rounded hover:text-slate-200">Radars & Lights</button>
+              <button class="px-2.5 py-1 rounded hover:text-slate-200">Sensors</button>
+            </div>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 text-xs font-medium transition border border-slate-700/60">
+              <span class="material-symbols-outlined text-xs">tune</span>
+              <span>Filter Matrix</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Baseline Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/60 text-slate-400 uppercase tracking-wider text-[10px] font-semibold border-b border-slate-800">
+              <tr>
+                <th scope="col" class="py-3 px-5">Hardware Device & Subsystem</th>
+                <th scope="col" class="py-3 px-4">Firmware Baseline</th>
+                <th scope="col" class="py-3 px-4">Stage-Gate Status</th>
+                <th scope="col" class="py-3 px-4">L10n Progress</th>
+                <th scope="col" class="py-3 px-4">Locales</th>
+                <th scope="col" class="py-3 px-4">Hardware QA Check</th>
+                <th scope="col" class="py-3 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80 font-normal">
+              
+              <!-- Row 1: Magene C606 Smart GPS Computer -->
+              <tr class="hover:bg-slate-900/60 transition group bg-slate-900/20">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                      <span class="material-symbols-outlined text-sm">directions_bike</span>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-100 flex items-center gap-1.5">
+                        <span>Magene C606 Smart GPS Computer</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      </div>
+                      <div class="text-[11px] text-slate-400 font-mono">LCD 2.4" 400x240 • ESP32-S3 WROOM</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 font-mono font-medium text-slate-200">
+                  <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-orange-400">v4.2.0-RC1</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                    <span class="material-symbols-outlined text-xs">ac_unit</span>
+                    Freeze Phase
+                  </span>
+                </td>
+                <td class="py-4 px-4">
+                  <div class="w-36">
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                      <span class="font-mono font-semibold text-slate-200">98.2%</span>
+                      <span class="text-slate-400 text-[10px]">1,394 / 1,420</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-gradient-to-r from-orange-500 to-amber-400 h-full w-[98.2%]"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-slate-300 font-mono">
+                  <span class="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 font-medium">14 Locales</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded">
+                    <span class="material-symbols-outlined text-xs">error</span>
+                    2 QA Buffer Warnings
+                  </span>
+                </td>
+                <td class="py-4 px-5 text-right">
+                  <div class="flex items-center justify-end gap-2 opacity-90 group-hover:opacity-100">
+                    <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition border border-slate-700">Open Studio</button>
+                    <button class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                      <span class="material-symbols-outlined text-sm">more_vert</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2: Magene C406 Pro GPS Computer -->
+              <tr class="hover:bg-slate-900/60 transition group">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <span class="material-symbols-outlined text-sm">speed</span>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-100">Magene C406 Pro GPS Computer</div>
+                      <div class="text-[11px] text-slate-400 font-mono">FSTN Segment 2.5" • NRF52840</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 font-mono font-medium text-slate-200">
+                  <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-emerald-400">v3.1.2</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    <span class="material-symbols-outlined text-xs">verified</span>
+                    Golden Master Sealed
+                  </span>
+                </td>
+                <td class="py-4 px-4">
+                  <div class="w-36">
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                      <span class="font-mono font-semibold text-emerald-400">100.0%</span>
+                      <span class="text-slate-400 text-[10px]">980 / 980</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-emerald-500 h-full w-[100%]"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-slate-300 font-mono">
+                  <span class="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 font-medium">12 Locales</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                    <span class="material-symbols-outlined text-xs">check_circle</span>
+                    Zero Clipping Safe
+                  </span>
+                </td>
+                <td class="py-4 px-5 text-right">
+                  <div class="flex items-center justify-end gap-2 opacity-90 group-hover:opacity-100">
+                    <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition border border-slate-700">Open Studio</button>
+                    <button class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                      <span class="material-symbols-outlined text-sm">more_vert</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3: Magene L508 Radar Tail Light -->
+              <tr class="hover:bg-slate-900/60 transition group">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                      <span class="material-symbols-outlined text-sm">sensors</span>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-100">Magene L508 Radar Tail Light</div>
+                      <div class="text-[11px] text-slate-400 font-mono">Millimeter-Wave Radar SoC • BLE 5.0</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 font-mono font-medium text-slate-200">
+                  <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-cyan-400">v2.0.4-dev</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                    <span class="material-symbols-outlined text-xs">bolt</span>
+                    Alpha Stage
+                  </span>
+                </td>
+                <td class="py-4 px-4">
+                  <div class="w-36">
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                      <span class="font-mono font-semibold text-cyan-300">82.5%</span>
+                      <span class="text-slate-400 text-[10px]">330 / 400</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-cyan-500 h-full w-[82.5%]"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-slate-300 font-mono">
+                  <span class="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 font-medium">8 Locales</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded">
+                    <span class="material-symbols-outlined text-xs">rule</span>
+                    Audit in Progress
+                  </span>
+                </td>
+                <td class="py-4 px-5 text-right">
+                  <div class="flex items-center justify-end gap-2 opacity-90 group-hover:opacity-100">
+                    <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition border border-slate-700">Open Studio</button>
+                    <button class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                      <span class="material-symbols-outlined text-sm">more_vert</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4: PES-P505 Base Power Meter -->
+              <tr class="hover:bg-slate-900/60 transition group">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                      <span class="material-symbols-outlined text-sm">electric_meter</span>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-100">PES-P505 Base Power Meter</div>
+                      <div class="text-[11px] text-slate-400 font-mono">Strain Gauge ADC Firmware • ANT+ / BLE</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 font-mono font-medium text-slate-200">
+                  <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-emerald-400">v1.6.0</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    <span class="material-symbols-outlined text-xs">verified</span>
+                    Golden Master Sealed
+                  </span>
+                </td>
+                <td class="py-4 px-4">
+                  <div class="w-36">
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                      <span class="font-mono font-semibold text-emerald-400">100.0%</span>
+                      <span class="text-slate-400 text-[10px]">210 / 210</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-emerald-500 h-full w-[100%]"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-slate-300 font-mono">
+                  <span class="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 font-medium">10 Locales</span>
+                </td>
+                <td class="py-4 px-4">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                    <span class="material-symbols-outlined text-xs">check_circle</span>
+                    Zero Clipping Safe
+                  </span>
+                </td>
+                <td class="py-4 px-5 text-right">
+                  <div class="flex items-center justify-end gap-2 opacity-90 group-hover:opacity-100">
+                    <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition border border-slate-700">Open Studio</button>
+                    <button class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200">
+                      <span class="material-symbols-outlined text-sm">more_vert</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section C: Bottom Dual Grid -->
+      <section class="grid grid-cols-12 gap-6">
+        
+        <!-- Left 7 cols: Multi-Language Localization Health Grid -->
+        <div class="col-span-7 rounded-xl bg-[#0f172a]/90 border border-slate-800 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-orange-400 text-base">language</span>
+                <h3 class="font-bold text-sm text-slate-100">Multi-Language Localization Health Grid</h3>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono">Sorted by Global Deployment Tier</span>
+            </div>
+
+            <!-- Language Progress Bars List -->
+            <div class="mt-4 space-y-3.5">
+              
+              <!-- zh-CN -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">zh-CN</span>
+                    <span class="text-slate-400 text-[11px]">Chinese Simplified (Master Source)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-emerald-400 font-bold">100.0%</span>
+                    <span class="text-[10px] text-slate-400">14,820/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full w-[100%] rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- en-US -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">en-US</span>
+                    <span class="text-slate-400 text-[11px]">English (Global Benchmark)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-emerald-400 font-bold">100.0%</span>
+                    <span class="text-[10px] text-slate-400">14,820/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full w-[100%] rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- de-DE -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">de-DE</span>
+                    <span class="text-slate-400 text-[11px]">German (DACH Region)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-cyan-400 font-bold">98.4%</span>
+                    <span class="text-[10px] text-slate-400">14,582/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-[98.4%] rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- fr-FR -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">fr-FR</span>
+                    <span class="text-slate-400 text-[11px]">French (Western Europe)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-cyan-400 font-bold">97.2%</span>
+                    <span class="text-[10px] text-slate-400">14,405/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-[97.2%] rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- es-ES -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">es-ES</span>
+                    <span class="text-slate-400 text-[11px]">Spanish (LATAM & Iberia)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-cyan-400 font-bold">96.5%</span>
+                    <span class="text-[10px] text-slate-400">14,301/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-[96.5%] rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- ja-JP -->
+              <div class="space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-200">ja-JP</span>
+                    <span class="text-slate-400 text-[11px]">Japanese (Katakana Font ROM)</span>
+                  </div>
+                  <div class="flex items-center gap-2 font-mono">
+                    <span class="text-amber-400 font-bold">92.8%</span>
+                    <span class="text-[10px] text-slate-400">13,752/14,820</span>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-amber-500 to-orange-400 h-full w-[92.8%] rounded-full"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Font Matrix: UTF-8 / GB2312 / JIS X 0208 compliant</span>
+            <button class="text-orange-400 hover:text-orange-300 font-medium">View all 14 locales →</button>
+          </div>
+        </div>
+
+        <!-- Right 5 cols: Recent Firmware String Diff Activity -->
+        <div class="col-span-5 rounded-xl bg-[#0f172a]/90 border border-slate-800 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-cyan-400 text-base">history</span>
+                <h3 class="font-bold text-sm text-slate-100">Recent String Diff Activity</h3>
+              </div>
+              <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Rollback Safe
+              </span>
+            </div>
+
+            <!-- Activity Commits Feed -->
+            <div class="mt-3.5 space-y-3">
+              
+              <!-- Commit 1 -->
+              <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">ADD</span>
+                    <span class="font-mono text-xs font-semibold text-slate-200">+12 strings in KW_RADAR</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">14m ago</span>
+                </div>
+                <p class="text-[11px] text-slate-400 truncate">Added millimeter-wave proximity alert strings for L508 radar.</p>
+                <div class="mt-2 flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                  <span>Author: @jacko_l</span>
+                  <span>•</span>
+                  <span>Branch: feature/l508-proximity</span>
+                </div>
+              </div>
+
+              <!-- Commit 2 -->
+              <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/30">MOD</span>
+                    <span class="font-mono text-xs font-semibold text-slate-200">KW_POWER_ZONE_ALERT</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">1h ago</span>
+                </div>
+                <p class="text-[11px] text-slate-400 truncate">Trimmed German text from 22c to 17c to prevent LCD buffer clipping.</p>
+                <div class="mt-2 flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                  <span>Author: @deepseek_v3_ai</span>
+                  <span>•</span>
+                  <span>SRAM Check: 16/18 chars (Safe)</span>
+                </div>
+              </div>
+
+              <!-- Commit 3 -->
+              <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 text-[10px] font-bold border border-cyan-500/30">SYNC</span>
+                    <span class="font-mono text-xs font-semibold text-slate-200">C406 Pro Master Sync</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">3h ago</span>
+                </div>
+                <p class="text-[11px] text-slate-400 truncate">Golden Master signed off by Firmware QA Lead. Ready for flash burning.</p>
+                <div class="mt-2 flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                  <span>Commit: #c406-v312-seal</span>
+                  <span>•</span>
+                  <span class="text-emerald-400 font-semibold">Verified</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 font-mono">Time Machine regret protection: ON</span>
+            <button class="text-xs text-cyan-400 hover:text-cyan-300 font-medium">Audit Log →</button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

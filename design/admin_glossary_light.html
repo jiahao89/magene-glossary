@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlossaHub - 固件词条与多语言管理后台 (Light Enterprise Admin)</title>
+  <meta name="description" content="GlossaHub 智能硬件固件多语言翻译与协同管理平台 - 浅色企业控制台">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+              400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-elevated: #ffffff;
+      --border-default: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --fg-title: #0f172a;
+      --fg-body: #334155;
+      --fg-muted: #64748b;
+      --fg-subtle: #94a3b8;
+      --table-header-bg: #f8fafc;
+    }
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--fg-body);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    .lcd-screen-matrix {
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 4px 4px;
+    }
+    .drawer-motion {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toast-in {
+      from { transform: translateY(100%) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .animate-toast { animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-[13px] antialiased select-none">
+
+  <!-- Header -->
+  <header class="h-14 border-b flex items-center justify-between px-4 z-20 shrink-0 shadow-xs"
+          style="background-color: var(--bg-surface); border-color: var(--border-default);">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-md bg-brand-500 flex items-center justify-center text-white font-bold shadow-md shadow-brand-500/25">
+          <span class="material-symbols-outlined text-[19px]">terminal</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-[15px] tracking-tight text-slate-900 leading-none">GlossaHub</span>
+            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border leading-none font-mono text-slate-600 bg-slate-100 border-slate-200">管理后台</span>
+          </div>
+          <span class="text-[10px] leading-tight text-slate-500">固件词条协同管理平台 (Light Edition)</span>
+        </div>
+      </div>
+      <div class="h-5 w-px bg-slate-200"></div>
+      <div class="flex items-center gap-2">
+        <button class="flex items-center gap-2 px-2.5 py-1.5 rounded-md border text-xs font-medium bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-300">
+          <span class="material-symbols-outlined text-[16px] text-brand-500">directions_bike</span>
+          <span class="font-semibold text-slate-900">迈金 C606 智能 GPS 码表</span>
+          <span class="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
+        </button>
+        <div class="flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-mono bg-slate-50 border-slate-200 text-slate-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="font-semibold">v4.2.0-RC1</span>
+          <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1 rounded border border-amber-200 flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[11px]">lock</span>
+            <span>Freeze 封板中</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Search -->
+    <div class="w-96 relative">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">search</span>
+      <input type="text" id="global-search-input" placeholder="全局检索 宏 KEY、中文原文、译文 (⌘K)..."
+             class="w-full rounded-md pl-8 pr-12 py-1.5 text-xs border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+      <kbd class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-200 bg-white text-slate-500">⌘K</kbd>
+    </div>
+
+    <!-- Right Tooling -->
+    <div class="flex items-center gap-3">
+      <a href="admin_glossary_dark.html" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium border-slate-200 bg-slate-50 text-slate-700 hover:text-slate-900 transition">
+        <span class="material-symbols-outlined text-[16px] text-slate-600">dark_mode</span>
+        <span>切换深色</span>
+      </a>
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs border-slate-200 bg-slate-50 text-slate-700">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="font-mono text-[11px] font-semibold text-cyan-700">DeepSeek-V3</span>
+        <span class="text-[10px] font-mono text-slate-400">14ms</span>
+      </div>
+      <div class="h-5 w-px bg-slate-200"></div>
+      <div class="flex items-center gap-2 cursor-pointer p-1 rounded-md hover:bg-slate-100">
+        <div class="w-7 h-7 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">李</div>
+        <div class="flex flex-col text-left">
+          <span class="text-xs font-semibold leading-tight text-slate-900">李工 (固件架构)</span>
+          <span class="text-[10px] leading-tight text-slate-500">嵌入式研发组</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-56 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 select-none">
+      <div class="p-2 space-y-4 overflow-y-auto">
+        <div>
+          <div class="px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase font-mono text-slate-400">词条与本地化工程</div>
+          <nav class="space-y-0.5 mt-1">
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md font-semibold text-xs border-l-2 border-brand-500 bg-brand-50 text-brand-700">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">table_chart</span>
+                <span>词条管理 (Strings)</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold bg-brand-100 text-brand-700">1,420</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">compare_arrows</span>
+                <span>版本对比与差分 (Diff)</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded border text-amber-700 bg-amber-50 border-amber-200">3D Diff</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">developer_board</span>
+                <span>真机屏幕热区仿真</span>
+              </div>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">storage</span>
+                <span>术语库与记忆库 (TM)</span>
+              </div>
+            </a>
+          </nav>
+        </div>
+        <div>
+          <div class="px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase font-mono text-slate-400">质量控制与发布</div>
+          <nav class="space-y-0.5 mt-1">
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">rule</span>
+                <span>L10n 自动化质检 (QA)</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded border text-rose-700 bg-rose-50 border-rose-200 font-bold">2 拦截</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">verified</span>
+                <span>固件基线发布中心</span>
+              </div>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[18px]">history</span>
+                <span>变更审计与时光机</span>
+              </div>
+            </a>
+          </nav>
+        </div>
+      </div>
+      <div class="p-3 border-t border-slate-200 bg-slate-50/70">
+        <div class="flex items-center justify-between text-xs mb-2 text-slate-500">
+          <span>Git 远端基线</span>
+          <span class="text-emerald-600 flex items-center gap-1 font-mono text-[11px] font-medium"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>已同步</span>
+        </div>
+        <button class="w-full py-1.5 rounded border border-slate-200 bg-white text-slate-700 text-xs flex items-center justify-center gap-1.5 hover:border-slate-300 transition">
+          <span class="material-symbols-outlined text-[14px]">sync</span>
+          <span>执行 glossa pull 同步</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Workstation -->
+    <main class="flex-1 flex flex-col bg-[#f8fafc] overflow-hidden relative">
+      <!-- Toolbar -->
+      <div class="p-4 pb-2.5 border-b border-slate-200 bg-white shrink-0">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+              <span>固件多语言系统</span>
+              <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+              <span>迈金 C606 智能码表</span>
+              <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+              <span class="font-semibold text-slate-900">词条管理总览</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-none">固件多语言词条清单与协同管理</h1>
+              <span class="text-xs px-2 py-0.5 rounded-full font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200">完成率: 98.2%</span>
+            </div>
+          </div>
+          <!-- Entrances -->
+          <div class="flex items-center gap-2">
+            <button class="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-800 flex items-center gap-1.5 text-xs font-medium hover:bg-slate-50 transition shadow-2xs">
+              <span class="material-symbols-outlined text-[16px] text-cyan-600">upload_file</span>
+              <span>导入 Excel / JSON</span>
+            </button>
+            <button class="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-800 flex items-center gap-1.5 text-xs font-medium hover:bg-slate-50 transition shadow-2xs">
+              <span class="material-symbols-outlined text-[16px] text-emerald-600">download</span>
+              <span>导出 C头文件 (.h)</span>
+            </button>
+            <button class="px-3 py-1.5 rounded-md border border-cyan-200 bg-cyan-50/60 text-cyan-700 flex items-center gap-1.5 text-xs font-semibold hover:bg-cyan-100/60 transition shadow-2xs">
+              <span class="material-symbols-outlined text-[16px]">auto_fix_high</span>
+              <span>批量 AI 翻译</span>
+            </button>
+            <button class="px-3.5 py-1.5 rounded-md bg-brand-500 hover:bg-brand-600 text-white font-medium flex items-center gap-1.5 text-xs transition shadow-md shadow-brand-500/25">
+              <span class="material-symbols-outlined text-[16px]">add</span>
+              <span>新建词条 (Add KW)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-64 relative">
+              <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-slate-400">filter_list</span>
+              <input type="text" id="table-filter-input" oninput="handleTableFilter(this.value)" placeholder="过滤当前列表 KEY、文案 (/)..."
+                     class="w-full rounded pl-7 pr-3 py-1 text-xs border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+            </div>
+            <!-- Subsystem Dropdown -->
+            <div class="relative">
+              <button onclick="toggleSubsystemMenu()" id="subsystem-dropdown-btn" class="flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700">
+                <span class="text-slate-400">子模块:</span>
+                <span class="font-semibold text-slate-900" id="selected-subsystem-label">全部模块 (5)</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+              </button>
+              <div id="subsystem-menu" class="hidden absolute left-0 top-full mt-1 w-44 rounded-md border border-slate-200 bg-white shadow-xl py-1 z-30">
+                <div onclick="selectSubsystem('all')" class="px-3 py-1.5 text-xs hover:bg-slate-50 cursor-pointer flex justify-between">
+                  <span>全部模块</span> <span class="font-mono text-slate-400">1,420</span>
+                </div>
+                <div onclick="selectSubsystem('SystemUI')" class="px-3 py-1.5 text-xs hover:bg-slate-50 cursor-pointer flex justify-between">
+                  <span>系统与设置</span> <span class="font-mono text-slate-400">420</span>
+                </div>
+                <div onclick="selectSubsystem('Radar')" class="px-3 py-1.5 text-xs hover:bg-slate-50 cursor-pointer flex justify-between">
+                  <span>雷达警报</span> <span class="font-mono text-slate-400">180</span>
+                </div>
+                <div onclick="selectSubsystem('Sensors')" class="px-3 py-1.5 text-xs hover:bg-slate-50 cursor-pointer flex justify-between">
+                  <span>传感器配对</span> <span class="font-mono text-slate-400">320</span>
+                </div>
+              </div>
+            </div>
+            <!-- Status Tabs -->
+            <div class="flex items-center p-0.5 rounded border border-slate-200 bg-slate-100">
+              <button onclick="setStatusTab('all')" id="tab-all" class="px-2.5 py-0.5 rounded text-xs font-medium transition bg-brand-500 text-white">全部 (8)</button>
+              <button onclick="setStatusTab('untranslated')" id="tab-untranslated" class="px-2.5 py-0.5 rounded text-xs font-medium text-slate-600 hover:text-slate-900 transition">未翻译 (1)</button>
+              <button onclick="setStatusTab('warning')" id="tab-warning" class="px-2.5 py-0.5 rounded text-xs font-medium text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
+                <span>字长预警</span> <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> (1)
+              </button>
+              <button onclick="setStatusTab('locked')" id="tab-locked" class="px-2.5 py-0.5 rounded text-xs font-medium text-slate-600 hover:text-slate-900 transition">已封板 (1)</button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500">对比语种:</span>
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800">
+              <span class="text-slate-500">zh-CN ➔ </span>
+              <span class="text-brand-600 font-bold font-mono">en-US</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div class="flex-1 overflow-auto bg-white">
+        <table class="w-full text-left border-collapse text-[13px]">
+          <thead class="sticky top-0 z-10 text-xs font-semibold select-none border-b border-slate-200 bg-slate-50 text-slate-600">
+            <tr>
+              <th class="py-2.5 px-3 w-10 text-center"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this.checked)" class="rounded border-slate-300 text-brand-500 focus:ring-0 w-3.5 h-3.5"></th>
+              <th class="py-2.5 px-3 w-64">宏定义 KEY (Macro Identifier)</th>
+              <th class="py-2.5 px-3 w-28">所属子模块</th>
+              <th class="py-2.5 px-3 w-72">中文基准原文 (zh-CN)</th>
+              <th class="py-2.5 px-3">当前目标译文 (en-US)</th>
+              <th class="py-2.5 px-3 w-40">物理字长限制 (SRAM/LCD)</th>
+              <th class="py-2.5 px-3 w-28 text-center">格式与占位符</th>
+              <th class="py-2.5 px-3 w-28 text-center">状态 / 来源</th>
+              <th class="py-2.5 px-3 w-36">更新人 / 时间</th>
+              <th class="py-2.5 px-3 w-28 text-center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="glossary-table-body" class="divide-y divide-slate-200 text-slate-800"></tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <footer class="h-11 border-t border-slate-200 bg-white px-4 flex items-center justify-between text-xs text-slate-500 shrink-0">
+        <div class="flex items-center gap-3">
+          <span class="text-slate-800">已选择 <strong class="text-brand-600 font-mono text-sm" id="selected-count">0</strong> 条记录</span>
+          <div class="h-3.5 w-px bg-slate-200"></div>
+          <button onclick="batchAction('retranslate')" class="px-2 py-1 rounded border border-slate-200 bg-slate-50 text-slate-700 text-[11px] hover:text-slate-900">批量重译</button>
+          <button onclick="batchAction('lock')" class="px-2 py-1 rounded border border-slate-200 bg-slate-50 text-slate-700 text-[11px] hover:text-slate-900">锁定/封板</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <span>共 1,420 条 · 第 1/71 页</span>
+          <div class="flex items-center gap-1">
+            <button class="p-1 rounded border border-slate-200 bg-slate-50 text-slate-400" disabled><span class="material-symbols-outlined text-[14px]">chevron_left</span></button>
+            <button class="px-2 py-0.5 rounded text-white font-mono text-[11px] bg-brand-500 font-bold">1</button>
+            <button class="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-700 font-mono text-[11px]">2</button>
+            <button class="p-1 rounded border border-slate-200 bg-slate-50 text-slate-700"><span class="material-symbols-outlined text-[14px]">chevron_right</span></button>
+          </div>
+        </div>
+      </footer>
+
+      <!-- Slide-Out Drawer -->
+      <aside id="detail-drawer" class="absolute top-0 right-0 h-full w-[540px] border-l border-slate-200 bg-white shadow-2xl z-30 translate-x-full drawer-motion flex flex-col">
+        <div class="h-14 border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2 overflow-hidden">
+            <span class="material-symbols-outlined text-brand-500 text-[20px]">tune</span>
+            <div class="flex flex-col">
+              <span class="font-bold text-sm text-slate-900">词条属性与真机仿真</span>
+              <span class="text-[10px] font-mono text-slate-500">SRAM 内存与 LCD 物理点阵实时验证</span>
+            </div>
+            <span id="drawer-key-badge" class="text-[11px] font-mono px-2 py-0.5 rounded font-bold border border-slate-200 bg-slate-100 text-brand-700 truncate max-w-[200px]">
+              KW_POWER_ZONE_ALERT
+            </span>
+          </div>
+          <button onclick="closeDrawer()" class="p-1 rounded-md text-slate-400 hover:text-slate-900 cursor-pointer"><span class="material-symbols-outlined text-[19px]">close</span></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Metadata -->
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>固件子系统: <strong id="drawer-subsystem" class="text-slate-900">系统与设置 (SystemUI)</strong></span>
+              <span>内存寻址: <strong id="drawer-address" class="font-mono text-cyan-700">0x0804F210</strong></span>
+            </div>
+            <div class="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
+              <span>基准中文原文:</span>
+              <span id="drawer-source-text" class="text-slate-900 font-semibold">功率目标区间超限报警</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>语音文件:</span>
+              <span id="drawer-audio-text" class="text-slate-700 font-mono text-[11px] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px] text-brand-500">volume_up</span> voice_pwr_alert.wav
+              </span>
+            </div>
+          </div>
+
+          <!-- Edit & Length -->
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-brand-500 text-[16px]">edit_note</span>
+                <span>目标译文 (en-US 实时编辑)</span>
+              </span>
+              <div class="flex items-center gap-1 font-mono text-[11px]">
+                <span id="drawer-len-current" class="font-bold text-emerald-600">16</span>
+                <span class="text-slate-500">/ <span id="drawer-len-max">18</span> 字节上限</span>
+              </div>
+            </div>
+            <input type="text" id="drawer-target-input" oninput="handleDrawerInput(this.value)"
+                   class="w-full rounded-md px-3 py-2 text-sm font-medium font-mono border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-brand-500 shadow-2xs">
+            <div class="space-y-1">
+              <div class="w-full h-2 rounded-full overflow-hidden bg-slate-200">
+                <div id="drawer-progress-fill" class="h-full bg-emerald-500 rounded-full transition-all duration-150" style="width: 88.8%;"></div>
+              </div>
+              <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                <span>0</span><span>70% 建议上限</span><span class="text-amber-600">90% 临界</span><span class="text-rose-600 font-bold" id="drawer-overflow-label">18 字节爆框</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LCD Mockup -->
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-brand-500 text-[16px]">tv</span>
+                <span>C606 码表 2.4" 阳光点阵屏真机仿真</span>
+              </span>
+              <span class="font-mono text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200">240×400 点阵</span>
+            </div>
+            <div class="w-64 mx-auto bg-slate-800 rounded-3xl p-3 shadow-2xl border border-slate-700">
+              <div class="bg-black rounded-2xl p-2.5 text-white font-mono flex flex-col justify-between h-52 border border-slate-800 lcd-screen-matrix overflow-hidden">
+                <div class="flex justify-between text-[9px] text-slate-400 border-b border-slate-800 pb-1 shrink-0">
+                  <span class="font-bold text-brand-500">MAGENE</span>
+                  <span>94%  12:45</span>
+                </div>
+                <div id="lcd-live-banner" class="my-auto py-1 px-1.5 rounded text-center text-xs font-bold tracking-tight uppercase shadow-md bg-amber-500 text-black">
+                  Power Zone Alert
+                </div>
+                <div class="text-center my-auto py-1 border-y border-slate-800/80">
+                  <div class="text-[9px] text-slate-400 uppercase">WATTS (3S AVG)</div>
+                  <div class="text-2xl font-black text-white tracking-tighter">342<span class="text-xs font-normal text-slate-400 ml-0.5">w</span></div>
+                </div>
+                <div class="grid grid-cols-2 text-center text-[10px] pt-1 text-slate-400 shrink-0">
+                  <div>CAD: <strong class="text-white">96</strong> rpm</div>
+                  <div>HR: <strong class="text-white">174</strong> bpm</div>
+                </div>
+              </div>
+            </div>
+            <p id="lcd-status-msg" class="text-[10px] text-center font-mono text-slate-500">点阵验证结果：无重叠换行，上下留白 2px，符合严苛阅读规范</p>
+          </div>
+
+          <!-- DeepSeek Recommender -->
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-cyan-600 text-[16px]">smart_toy</span>
+                <span>DeepSeek-V3 决策链与 TM 向量推荐</span>
+              </span>
+              <span class="text-[10px] font-mono text-cyan-700 bg-cyan-100 px-1.5 py-0.5 rounded border border-cyan-200">CoT 1.8s</span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="p-2 rounded border border-brand-200 bg-white flex items-center justify-between shadow-2xs">
+                <div>
+                  <div class="font-semibold text-slate-900">Power Zone Alert</div>
+                  <div class="text-[10px] text-slate-500">AI 推荐 · 16 字符安全 · 符合硬件术语表 #41 规范</div>
+                </div>
+                <button onclick="adoptCandidate('Power Zone Alert')" class="px-2 py-1 bg-brand-500 text-white rounded text-[11px] font-medium hover:bg-brand-600">采纳</button>
+              </div>
+              <div class="p-2 rounded border border-slate-200 bg-white flex items-center justify-between shadow-2xs">
+                <div>
+                  <div class="font-medium text-slate-700">Power Zone Warning</div>
+                  <div class="text-[10px] text-slate-400">C406 基准库 TM 100% · 18 字符 (触及极限)</div>
+                </div>
+                <button onclick="adoptCandidate('Power Zone Warning')" class="px-2 py-1 rounded border border-slate-200 bg-slate-50 text-slate-700 hover:text-slate-900 text-[11px]">替换</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Machine -->
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-amber-600 text-[16px]">history</span>
+                <span>单字段变更追溯 (时光机回退)</span>
+              </span>
+              <span class="text-[10px] text-emerald-600 font-mono">后悔药已就绪</span>
+            </div>
+            <div class="space-y-2 text-xs border-l-2 border-slate-300 ml-2 pl-3 pt-1">
+              <div>
+                <div class="flex items-center justify-between font-mono text-[11px] text-slate-500">
+                  <span>李工 (固件研发)</span><span>今天 16:30</span>
+                </div>
+                <p class="mt-0.5 text-slate-700">en-US: <del class="text-rose-600">Power Zone Warning</del> ➔ <ins class="text-emerald-600 no-underline font-semibold">Power Zone Alert</ins></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-14 border-t border-slate-200 px-4 flex items-center justify-between shrink-0 bg-white">
+          <button onclick="closeDrawer()" class="px-3.5 py-1.5 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-xs hover:text-slate-900">取消</button>
+          <div class="flex items-center gap-2">
+            <button onclick="closeDrawer()" class="px-4 py-1.5 rounded-md bg-brand-500 hover:bg-brand-600 text-white font-medium text-xs shadow-md shadow-brand-500/25">保存并同步</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-14 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Reused JS Logic from stitch_main_page.html -->
+  <script>
+    const rawGlossaryData = [
+      { id: 'KW_POWER_ZONE_ALERT', subsystem: 'SystemUI', subsystemLabel: '系统与设置', address: '0x0804F210', sourceZh: '功率目标区间超限报警', targetEn: 'Power Zone Alert', maxLen: 18, format: 'none', formatLabel: '无占位符', status: 'translated', statusLabel: 'TM 92%', author: '李工', timeAgo: '10分钟前', audio: 'voice_pwr_alert.wav (16KB)', isLocked: false },
+      { id: 'KW_RADAR_APPROACH_FAST', subsystem: 'Radar', subsystemLabel: '雷达警报', address: '0x0804F340', sourceZh: '后方车辆极速接近', targetEn: 'Fast Target Approaching', maxLen: 18, format: 'none', formatLabel: '无占位符', status: 'warning', statusLabel: 'QA拦截 (+5c)', author: 'Sarah (译员)', timeAgo: '1小时前', audio: 'voice_radar_fast.wav (24KB)', isLocked: false },
+      { id: 'KW_CADENCE_CONNECTED', subsystem: 'Sensors', subsystemLabel: '传感器配对', address: '0x0804F480', sourceZh: '踏频传感器已连接', targetEn: 'Cadence Sensor Connected', maxLen: 32, format: 'none', formatLabel: '无占位符', status: 'translated', statusLabel: 'TM 100%', author: '系统自动', timeAgo: '昨天', audio: '-', isLocked: false },
+      { id: 'KW_NAVIGATION_DIST_LEFT', subsystem: 'Nav', subsystemLabel: '导航路线', address: '0x0804F5C0', sourceZh: '还剩 %d 米到达终点', targetEn: '%d m to destination', maxLen: 24, format: 'param', formatLabel: '%d 匹配一致', status: 'translated', statusLabel: 'DeepSeek', author: 'AI 批量', timeAgo: '今天 11:20', audio: 'voice_nav_dest.wav', isLocked: false },
+      { id: 'KW_SMART_TRAINER_ERG_MODE', subsystem: 'Trainer', subsystemLabel: '骑行台控制', address: '0x0804F700', sourceZh: '骑行台目标功率靶向模式', targetEn: '', maxLen: 20, format: 'none', formatLabel: '-', status: 'untranslated', statusLabel: '待翻译', author: '王工 (创建)', timeAgo: '2天前', audio: '-', isLocked: false },
+      { id: 'KW_BLUETOOTH_PAIRING', subsystem: 'SystemUI', subsystemLabel: '系统连接', address: '0x0804F820', sourceZh: '正在配对蓝牙设备...', targetEn: 'Pairing Bluetooth Device...', maxLen: 30, format: 'none', formatLabel: '无占位符', status: 'locked', statusLabel: '已封板', author: '固件主架构', timeAgo: 'RC1 封板', audio: '-', isLocked: true }
+    ];
+
+    const appState = { activeTab: 'all', selectedSubsystem: 'all', searchKeyword: '', selectedIds: new Set(['KW_POWER_ZONE_ALERT']), activeItem: rawGlossaryData[0], items: JSON.parse(JSON.stringify(rawGlossaryData)) };
+
+    function getFilteredItems() {
+      return appState.items.filter(item => {
+        if (appState.activeTab === 'untranslated' && item.status !== 'untranslated') return false;
+        if (appState.activeTab === 'warning' && item.status !== 'warning') return false;
+        if (appState.activeTab === 'locked' && !item.isLocked) return false;
+        if (appState.selectedSubsystem !== 'all' && item.subsystem !== appState.selectedSubsystem) return false;
+        if (appState.searchKeyword.trim() !== '') {
+          const kw = appState.searchKeyword.toLowerCase().trim();
+          if (!item.id.toLowerCase().includes(kw) && !item.sourceZh.toLowerCase().includes(kw) && !item.targetEn.toLowerCase().includes(kw)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('glossary-table-body');
+      const filtered = getFilteredItems();
+      tbody.innerHTML = filtered.map(item => {
+        const isSelected = appState.selectedIds.has(item.id);
+        const isActive = appState.activeItem && appState.activeItem.id === item.id;
+        const curLen = item.targetEn ? item.targetEn.length : 0;
+        const pct = Math.min((curLen / item.maxLen) * 100, 100).toFixed(1);
+        const isOverflow = curLen > item.maxLen;
+        const isWarning = curLen >= Math.floor(item.maxLen * 0.9) && !isOverflow;
+        const barColor = isOverflow ? 'bg-rose-500' : (isWarning ? 'bg-amber-500' : 'bg-emerald-500');
+        const lenColor = isOverflow ? 'text-rose-600 font-bold' : (isWarning ? 'text-amber-600 font-bold' : 'text-emerald-600');
+        
+        let statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] text-cyan-700 bg-cyan-100 px-2 py-0.5 rounded border border-cyan-200"><span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>${item.statusLabel}</span>`;
+        if (isOverflow) statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded border border-rose-200 font-semibold"><span class="material-symbols-outlined text-[12px]">warning</span>QA拦截</span>`;
+        if (item.status === 'untranslated') statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 font-medium">未翻译</span>`;
+        if (item.isLocked) statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200"><span class="material-symbols-outlined text-[12px]">lock</span>已封板</span>`;
+
+        const rowBg = isActive ? 'bg-orange-50 border-l-2 border-brand-500' : (isOverflow ? 'bg-rose-50/70 hover:bg-rose-100/70' : 'hover:bg-slate-50');
+
+        return `
+          <tr onclick="inspectItem('${item.id}')" class="${rowBg} transition cursor-pointer">
+            <td class="py-2.5 px-3 text-center" onclick="event.stopPropagation()">
+              <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleItemSelect('${item.id}', this.checked)" class="rounded border-slate-300 text-brand-500 focus:ring-0 w-3.5 h-3.5">
+            </td>
+            <td class="py-2.5 px-3 font-mono font-medium flex items-center gap-1.5 ${isOverflow ? 'text-rose-600' : (isActive ? 'text-brand-600' : 'text-slate-800')}">
+              ${item.isLocked ? '<span class="material-symbols-outlined text-[13px] text-amber-600">lock</span>' : ''}
+              <span>${item.id}</span>
+            </td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] border border-slate-200">${item.subsystemLabel}</span></td>
+            <td class="py-2.5 px-3 text-slate-900 font-medium">${item.sourceZh}</td>
+            <td class="py-2.5 px-3 font-medium ${isOverflow ? 'text-rose-600' : 'text-slate-900'}">${item.targetEn || '<span class="text-amber-600/90 italic font-normal">待翻译</span>'}</td>
+            <td class="py-2.5 px-3">
+              <div class="space-y-1">
+                <div class="flex justify-between text-[11px] font-mono"><span class="${lenColor}">${curLen} / ${item.maxLen} 字符</span><span class="text-slate-500">${isOverflow ? '<strong class="text-rose-600">+'+(curLen-item.maxLen)+'c 截断</strong>' : pct+'%'}</span></div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${barColor} rounded-full" style="width: ${pct}%"></div></div>
+              </div>
+            </td>
+            <td class="py-2.5 px-3 text-center"><span class="text-emerald-700 font-mono text-[11px]">${item.formatLabel}</span></td>
+            <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-xs text-slate-500 font-mono"><div>${item.author}</div><div class="text-[10px] text-slate-400">${item.timeAgo}</div></td>
+            <td class="py-2.5 px-3 text-center" onclick="event.stopPropagation()">
+              <button onclick="inspectItem('${item.id}')" class="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-900" title="抽屉编辑"><span class="material-symbols-outlined text-[16px]">side_navigation</span></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      document.getElementById('selected-count').textContent = appState.selectedIds.size;
+    }
+
+    function inspectItem(id) {
+      const item = appState.items.find(i => i.id === id);
+      if (!item) return;
+      appState.activeItem = item;
+      document.getElementById('drawer-key-badge').textContent = item.id;
+      document.getElementById('drawer-subsystem').textContent = `${item.subsystemLabel} (${item.subsystem})`;
+      document.getElementById('drawer-address').textContent = item.address;
+      document.getElementById('drawer-source-text').textContent = item.sourceZh;
+      document.getElementById('drawer-audio-text').textContent = item.audio;
+      document.getElementById('drawer-target-input').value = item.targetEn;
+      document.getElementById('drawer-len-max').textContent = item.maxLen;
+      syncDrawerLiveMetrics(item.targetEn, item.maxLen);
+      document.getElementById('detail-drawer').classList.remove('translate-x-full');
+      document.getElementById('detail-drawer').classList.add('translate-x-0');
+      renderTable();
+    }
+
+    function closeDrawer() {
+      document.getElementById('detail-drawer').classList.remove('translate-x-0');
+      document.getElementById('detail-drawer').classList.add('translate-x-full');
+    }
+
+    function handleDrawerInput(val) {
+      if (!appState.activeItem) return;
+      appState.activeItem.targetEn = val;
+      syncDrawerLiveMetrics(val, appState.activeItem.maxLen);
+      renderTable();
+    }
+
+    function syncDrawerLiveMetrics(val, maxLen) {
+      const len = val ? val.length : 0;
+      document.getElementById('drawer-len-current').textContent = len;
+      document.getElementById('lcd-live-banner').textContent = val || 'EMPTY';
+      const pct = Math.min((len / maxLen) * 100, 100);
+      const bar = document.getElementById('drawer-progress-fill');
+      bar.style.width = pct + '%';
+      if (len > maxLen) {
+        bar.className = 'h-full bg-rose-500 rounded-full transition-all animate-pulse';
+        document.getElementById('drawer-len-current').className = 'font-bold text-rose-600';
+      } else {
+        bar.className = 'h-full bg-emerald-500 rounded-full transition-all';
+        document.getElementById('drawer-len-current').className = 'font-bold text-emerald-600';
+      }
+    }
+
+    function adoptCandidate(text) {
+      document.getElementById('drawer-target-input').value = text;
+      handleDrawerInput(text);
+      showToast(`已采纳: "${text}"`, 'success');
+    }
+
+    function toggleSelectAll(checked) {
+      const filtered = getFilteredItems();
+      if (checked) filtered.forEach(i => appState.selectedIds.add(i.id));
+      else appState.selectedIds.clear();
+      renderTable();
+    }
+
+    function toggleItemSelect(id, checked) {
+      if (checked) appState.selectedIds.add(id);
+      else appState.selectedIds.delete(id);
+      renderTable();
+    }
+
+    function batchAction(type) {
+      showToast(`执行批量操作: ${type} (${appState.selectedIds.size}项)`, 'info');
+    }
+
+    function setStatusTab(tab) {
+      appState.activeTab = tab;
+      renderTable();
+    }
+
+    function handleTableFilter(val) {
+      appState.searchKeyword = val;
+      renderTable();
+    }
+
+    function toggleSubsystemMenu() {
+      document.getElementById('subsystem-menu').classList.toggle('hidden');
+    }
+
+    function selectSubsystem(sub) {
+      appState.selectedSubsystem = sub;
+      document.getElementById('selected-subsystem-label').textContent = sub === 'all' ? '全部模块 (5)' : sub;
+      document.getElementById('subsystem-menu').classList.add('hidden');
+      renderTable();
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'animate-toast flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 shadow-xl text-xs font-medium pointer-events-auto';
+      toast.innerHTML = `<span class="material-symbols-outlined text-[16px] text-brand-500">info</span><span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 2800);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('global-search-input').focus(); }
+      if (e.key === 'Escape') { closeDrawer(); document.getElementById('subsystem-menu').classList.add('hidden'); }
+    });
+
+    renderTable();
+    inspectItem('KW_POWER_ZONE_ALERT');
+  </script>
+</body>
+</html>

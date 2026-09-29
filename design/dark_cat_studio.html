@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GlossaHub v2.0 - Magene Firmware Translation Studio</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-container": "#582200",
+            "status-warning": "#f59e0b",
+            "primary": "#ffb690",
+            "outline-variant": "#584237",
+            "tertiary-fixed-dim": "#93ccff",
+            "status-success": "#10b981",
+            "on-surface": "#dce1fb",
+            "on-error-container": "#ffdad6",
+            "surface": "#0c1324",
+            "on-secondary-fixed-variant": "#004e5c",
+            "inverse-primary": "#9d4300",
+            "tertiary-container": "#00a2f4",
+            "primary-fixed-dim": "#ffb690",
+            "primary-container": "#f97316",
+            "on-tertiary-container": "#003554",
+            "secondary": "#4cd7f6",
+            "on-primary-fixed": "#341100",
+            "inverse-surface": "#dce1fb",
+            "on-tertiary-fixed": "#001d32",
+            "on-secondary": "#003640",
+            "secondary-fixed-dim": "#4cd7f6",
+            "on-surface-variant": "#e0c0b1",
+            "on-secondary-container": "#00424e",
+            "on-secondary-fixed": "#001f26",
+            "surface-bright": "#33394c",
+            "surface-elevated": "#1e293b",
+            "surface-tint": "#ffb690",
+            "surface-variant": "#2e3447",
+            "background": "#0c1324",
+            "surface-container-low": "#151b2d",
+            "on-tertiary-fixed-variant": "#004b74",
+            "primary-fixed": "#ffdbca",
+            "surface-container-highest": "#2e3447",
+            "secondary-container": "#03b5d3",
+            "surface-dim": "#0c1324",
+            "surface-container-high": "#23293c",
+            "on-background": "#dce1fb",
+            "on-primary": "#552100",
+            "tertiary-fixed": "#cde5ff",
+            "surface-container": "#191f31",
+            "secondary-fixed": "#acedff",
+            "foreground-main": "#f8fafc",
+            "surface-container-lowest": "#070d1f",
+            "on-primary-fixed-variant": "#783200",
+            "on-error": "#690005",
+            "outline": "#a78b7d",
+            "foreground-muted": "#94a3b8",
+            "error": "#ffb4ab",
+            "tertiary": "#93ccff",
+            "surface-base": "#0f172a",
+            "on-tertiary": "#003351",
+            "status-danger": "#f43f5e",
+            "inverse-on-surface": "#2a3043",
+            "error-container": "#93000a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "gutter-desktop": "1.5rem",
+            "space-xl": "2rem",
+            "gutter": "1rem",
+            "margin": "1rem",
+            "space-lg": "1.5rem",
+            "margin-desktop": "1.5rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "display-xl": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "mono-kw": ["JetBrains Mono"],
+            "mono-metric": ["JetBrains Mono"],
+            "label-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"],
+            "display-xl-mobile": ["Inter"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "display-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "mono-kw": ["13px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "mono-metric": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-on-surface antialiased font-body-md text-body-md min-w-[1440px] overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- ================= LEFT RAIL: SHARED SideNavBar ================= -->
+<aside class="docked fixed top-0 left-0 h-screen w-60 z-40 bg-surface-container-low border-r border-outline-variant/30 shadow-none backdrop-blur-md flex flex-col justify-between p-4">
+<div class="flex flex-col gap-5">
+<!-- Brand & Header -->
+<div class="flex items-center justify-between px-1 pt-1">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-primary-container/20 border border-primary-container/40 flex items-center justify-center text-primary-container shadow-inner">
+<span class="material-symbols-outlined" data-icon="developer_board">developer_board</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-headline-sm font-headline-sm font-bold text-primary tracking-tight">GlossaHub v2.0</span>
+</div>
+<p class="text-body-sm font-body-sm text-foreground-muted">Firmware Localization Studio</p>
+</div>
+</div>
+</div>
+<!-- Hardware Device Selector Switcher -->
+<div class="bg-surface-elevated/80 border border-outline-variant/30 rounded-lg p-2 flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-secondary" data-icon="memory">memory</span>
+<span class="truncate font-label-md text-label-md text-foreground-main">C606 Matrix</span>
+</div>
+<span class="material-symbols-outlined text-foreground-muted" data-icon="unfold_more">unfold_more</span>
+</div>
+<!-- Navigation Hierarchy -->
+<nav class="flex flex-col gap-1">
+<!-- 1. Projects -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-foreground-muted hover:text-on-surface font-label-md text-label-md hover:bg-surface-container-high/60 transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="folder_open">folder_open</span>
+<span>Projects</span>
+</a>
+<!-- 2. String Catalog (Active based on screen intent) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-primary bg-primary-container/20 border-l-2 border-primary font-label-md text-label-md active:scale-[0.98] transition-transform duration-100 ease-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="translate">translate</span>
+<span class="flex-1">String Catalog</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-primary-container/30 text-primary">v4.2</span>
+</a>
+<!-- 3. Terminology & TM -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-foreground-muted hover:text-on-surface font-label-md text-label-md hover:bg-surface-container-high/60 transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="auto_stories">auto_stories</span>
+<span>Terminology &amp; TM</span>
+</a>
+<!-- 4. Hardware Emulators -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-foreground-muted hover:text-on-surface font-label-md text-label-md hover:bg-surface-container-high/60 transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="developer_board">developer_board</span>
+<span>Hardware Emulators</span>
+</a>
+<!-- 5. Telemetry Logs -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-foreground-muted hover:text-on-surface font-label-md text-label-md hover:bg-surface-container-high/60 transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="query_stats">query_stats</span>
+<span>Telemetry Logs</span>
+</a>
+<!-- 6. Firmware Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-foreground-muted hover:text-on-surface font-label-md text-label-md hover:bg-surface-container-high/60 transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span>
+<span>Firmware Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Actions & Engineer Avatar -->
+<div class="flex flex-col gap-3 pt-3 border-t border-outline-variant/30">
+<!-- Sync LCD Build CTA Button -->
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-surface-elevated hover:bg-surface-bright border border-outline-variant/40 text-on-surface text-label-md font-label-md transition-all active:scale-[0.98]">
+<span class="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+<span>Sync LCD Build</span>
+</button>
+<!-- Footer Subnav -->
+<div class="flex items-center justify-between px-1 text-foreground-muted">
+<a class="flex items-center gap-1.5 hover:text-on-surface text-body-sm font-body-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-1.5 hover:text-on-surface text-body-sm font-body-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]" data-icon="terminal">terminal</span>
+<span>Terminal Audit</span>
+</a>
+</div>
+<!-- Lead Engineer Profile -->
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-lowest/60 border border-outline-variant/20">
+<div class="flex items-center gap-2.5">
+<div class="relative">
+<div class="w-7 h-7 rounded-full bg-surface-variant flex items-center justify-center font-label-sm text-label-sm text-primary font-bold border border-primary/30">
+              JL
+            </div>
+<span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-status-success ring-1 ring-surface-base"></span>
+</div>
+<div class="leading-tight">
+<p class="font-label-md text-label-md text-foreground-main font-semibold">Jacko L.</p>
+<p class="font-body-sm text-body-sm text-foreground-muted text-[10px]">Lead Firmware Systems</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-foreground-muted text-[18px] hover:text-on-surface cursor-pointer" data-icon="settings">settings</span>
+</div>
+</div>
+</aside>
+<!-- ================= TOP APP BAR: SHARED TopNavBar ================= -->
+<header class="docked fixed top-0 right-0 left-60 z-30 h-14 bg-surface-container-lowest/80 border-b border-outline-variant/30 backdrop-blur-md shadow-sm flex items-center justify-between px-6">
+<!-- Breadcrumb & Language Context -->
+<div class="flex items-center gap-3">
+<nav class="flex items-center gap-2 font-body-sm text-body-sm text-foreground-muted">
+<span>Bike Computers</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="font-label-md text-label-md text-foreground-main">C606 Matrix</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="font-mono-metric text-mono-metric text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">Baseline: v2.4.1-rc3</span>
+</nav>
+<span class="text-outline-variant/60">|</span>
+<!-- Language Pair Badge -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-elevated border border-outline-variant/40 font-mono-kw text-mono-kw text-on-surface">
+<span class="text-primary-container font-semibold">zh-CN</span>
+<span class="text-foreground-muted">→</span>
+<span class="text-secondary font-semibold">en-US</span>
+<span class="w-1.5 h-1.5 rounded-full bg-status-success ml-1"></span>
+<span class="font-mono-metric text-mono-metric text-status-success">Memory Match: 98%</span>
+</div>
+</div>
+<!-- Trailing Actions & Diagnostics -->
+<div class="flex items-center gap-3">
+<!-- Free SRAM Metric Pill -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high border border-outline-variant/30 font-mono-metric text-mono-metric text-foreground-muted">
+<span class="material-symbols-outlined text-[15px] text-tertiary" data-icon="memory">memory</span>
+<span>Pool: <strong class="text-foreground-main font-semibold">48.2 KB</strong> Free</span>
+</div>
+<!-- Icon Actions -->
+<div class="flex items-center gap-1 border-r border-outline-variant/30 pr-3">
+<button class="p-1.5 rounded text-foreground-muted hover:text-on-surface hover:bg-surface-elevated transition-colors" title="Terminal Output">
+<span class="material-symbols-outlined text-[18px]" data-icon="terminal">terminal</span>
+</button>
+<button class="p-1.5 rounded text-foreground-muted hover:text-on-surface hover:bg-surface-elevated transition-colors" title="Diagnostics &amp; Telemetry">
+<span class="material-symbols-outlined text-[18px]" data-icon="bug_report">bug_report</span>
+</button>
+<button class="p-1.5 rounded text-foreground-muted hover:text-on-surface hover:bg-surface-elevated relative transition-colors" title="Build Notifications">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</button>
+</div>
+<!-- Secondary Export Action -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-elevated hover:bg-surface-bright border border-outline-variant/40 text-on-surface font-label-md text-label-md transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px]" data-icon="file_download">file_download</span>
+<span>Export Firmware Bin</span>
+</button>
+<!-- Primary Deploy Action -->
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-fixed font-label-md text-label-md font-semibold transition-all active:scale-[0.98] shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+<span>Adopt &amp; Push to Build</span>
+</button>
+</div>
+</header>
+<!-- ================= 3-PANE WORKSPACE ================= -->
+<main class="ml-60 pt-14 flex h-[calc(100vh-3.5rem)] bg-surface overflow-hidden">
+<!-- PANE 1: Category Tree & Subsystems (240px) -->
+<section class="w-60 flex-shrink-0 bg-surface-container-lowest/60 border-r border-outline-variant/30 flex flex-col justify-between overflow-y-auto">
+<div class="p-3.5 flex flex-col gap-3">
+<!-- Search Subsystems -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-foreground-muted" data-icon="search">search</span>
+<input class="w-full pl-8 pr-2.5 py-1.5 bg-surface-base border border-outline-variant/30 rounded text-body-sm font-body-sm placeholder:text-foreground-muted/60 text-foreground-main focus:outline-none focus:border-primary-container transition-colors" placeholder="Filter subsystems..." type="text"/>
+</div>
+<!-- Quick Filters Chips -->
+<div class="flex items-center gap-1 flex-wrap">
+<button class="px-2 py-0.5 rounded font-mono-metric text-mono-metric bg-status-danger/10 text-status-danger border border-status-danger/20 hover:bg-status-danger/20 transition-colors">
+            Risk First
+          </button>
+<button class="px-2 py-0.5 rounded font-mono-metric text-mono-metric bg-status-warning/10 text-status-warning border border-status-warning/20 hover:bg-status-warning/20 transition-colors">
+            Modified
+          </button>
+<button class="px-2 py-0.5 rounded font-mono-metric text-mono-metric bg-surface-elevated text-foreground-muted border border-outline-variant/30 hover:text-on-surface transition-colors">
+            Buffer Limit
+          </button>
+</div>
+<!-- Subsystems List -->
+<div class="flex flex-col gap-1 mt-1">
+<div class="text-[10px] font-mono-metric uppercase tracking-wider text-foreground-muted px-2 py-1">Firmware Subsystems</div>
+<!-- Active Category: System UI -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded bg-primary-container/15 border-l-2 border-primary-container text-foreground-main font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="display_settings">display_settings</span>
+<span>System UI</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-primary-container text-on-primary font-bold">42</span>
+</button>
+<!-- Navigation & Maps -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded text-foreground-muted hover:text-foreground-main hover:bg-surface-elevated/60 font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="navigation">navigation</span>
+<span>Navigation &amp; Maps</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-surface-elevated text-foreground-muted">128</span>
+</button>
+<!-- Radar Alerts -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded text-foreground-muted hover:text-foreground-main hover:bg-surface-elevated/60 font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="radar">radar</span>
+<span>Radar Alerts</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-surface-elevated text-foreground-muted">36</span>
+</button>
+<!-- Sensors & Telemetry -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded text-foreground-muted hover:text-foreground-main hover:bg-surface-elevated/60 font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="sensors">sensors</span>
+<span>Sensors &amp; Telemetry</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-surface-elevated text-foreground-muted">88</span>
+</button>
+<!-- BLE & ANT+ Protocol -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded text-foreground-muted hover:text-foreground-main hover:bg-surface-elevated/60 font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="settings_input_antenna">settings_input_antenna</span>
+<span>BLE &amp; ANT+ Protocol</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-surface-elevated text-foreground-muted">54</span>
+</button>
+<!-- Power Meter Calibration -->
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded text-foreground-muted hover:text-foreground-main hover:bg-surface-elevated/60 font-label-md text-label-md text-left transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="speed">speed</span>
+<span>Power Calibration</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.5 rounded bg-surface-elevated text-foreground-muted">19</span>
+</button>
+</div>
+</div>
+<!-- Subsystem Telemetry Status -->
+<div class="p-3 border-t border-outline-variant/30 bg-surface-container-low/40">
+<div class="flex items-center justify-between text-body-sm font-body-sm mb-1.5">
+<span class="text-foreground-muted">String Verification</span>
+<span class="font-mono-metric text-mono-metric text-status-success font-semibold">94.2%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-elevated rounded-full overflow-hidden">
+<div class="h-full bg-status-success rounded-full" style="width: 94.2%"></div>
+</div>
+</div>
+</section>
+<!-- PANE 2: High-Density String Virtual Catalog (380px) -->
+<section class="w-[380px] flex-shrink-0 bg-surface-container-low/30 border-r border-outline-variant/30 flex flex-col">
+<!-- Search & Command Bar -->
+<div class="p-3 border-b border-outline-variant/30 flex flex-col gap-2.5">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-foreground-muted" data-icon="search">search</span>
+<input class="w-full pl-8 pr-16 py-2 bg-surface-base border border-outline-variant/30 rounded text-body-sm font-body-sm text-foreground-main focus:outline-none focus:border-primary-container" type="text" value="POWER_ZONE"/>
+<div class="absolute right-2 top-2 px-1.5 py-0.5 rounded bg-surface-elevated border border-outline-variant/40 font-mono-metric text-mono-metric text-foreground-muted">
+            Cmd+K
+          </div>
+</div>
+<!-- Filter Sub-tabs -->
+<div class="flex items-center gap-1.5">
+<button class="px-2.5 py-1 rounded bg-surface-elevated text-foreground-main font-label-md text-label-md border border-outline-variant/40">
+            All <span class="text-foreground-muted font-mono-metric text-mono-metric">(1,420)</span>
+</button>
+<button class="px-2.5 py-1 rounded hover:bg-surface-elevated text-foreground-muted hover:text-foreground-main font-label-md text-label-md transition-colors">
+            Untranslated <span class="text-status-warning font-mono-metric text-mono-metric">(26)</span>
+</button>
+<button class="px-2.5 py-1 rounded hover:bg-surface-elevated text-foreground-muted hover:text-foreground-main font-label-md text-label-md transition-colors">
+            QA Warning <span class="text-status-danger font-mono-metric text-mono-metric">(2)</span>
+</button>
+</div>
+</div>
+<!-- String Cards List -->
+<div class="flex-1 overflow-y-auto p-3 space-y-2">
+<!-- ACTIVE ITEM: KW_POWER_ZONE_ALERT -->
+<div class="p-3 rounded-lg border-2 border-primary-container bg-primary-container/10 cursor-pointer shadow-md transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-kw text-mono-kw text-primary font-bold">KW_POWER_ZONE_ALERT</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 bg-secondary/15 text-secondary border border-secondary/30 rounded">TM 92%</span>
+</div>
+<p class="font-body-md text-body-md text-foreground-muted mb-1">功率目标区间超限报警</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+<p class="font-label-md text-label-md text-foreground-main font-medium">Power Zone Alert</p>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-status-success/15 text-status-success border border-status-success/30 font-semibold">
+              16/18 chars
+            </span>
+</div>
+</div>
+<!-- ITEM 2: KW_RADAR_APPROACH_FAST -->
+<div class="p-3 rounded-lg border border-status-danger/40 bg-status-danger/5 hover:bg-surface-elevated/40 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-kw text-mono-kw text-foreground-main font-semibold">KW_RADAR_APPROACH_FAST</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 bg-status-danger/20 text-status-danger border border-status-danger/40 rounded font-bold">OVERFLOW</span>
+</div>
+<p class="font-body-md text-body-md text-foreground-muted mb-1">后方车辆极速接近</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+<p class="font-label-md text-label-md text-foreground-muted">Fast Target Approaching</p>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-status-danger/20 text-status-danger border border-status-danger/30 font-bold">
+              19/18c !
+            </span>
+</div>
+</div>
+<!-- ITEM 3: KW_CADENCE_CONNECTED -->
+<div class="p-3 rounded-lg border border-outline-variant/30 bg-surface-base/50 hover:bg-surface-elevated/40 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-kw text-mono-kw text-foreground-main">KW_CADENCE_CONNECTED</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 bg-secondary/10 text-secondary rounded">TM 100%</span>
+</div>
+<p class="font-body-md text-body-md text-foreground-muted mb-1">踏频传感器已连接</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+<p class="font-label-md text-label-md text-foreground-muted">Cadence Connected</p>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-status-success/10 text-status-success">
+              12/24c
+            </span>
+</div>
+</div>
+<!-- ITEM 4: KW_BATTERY_CRITICAL_DOWN -->
+<div class="p-3 rounded-lg border border-outline-variant/30 bg-surface-base/50 hover:bg-surface-elevated/40 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-kw text-mono-kw text-foreground-main">KW_BATTERY_CRITICAL_DOWN</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 bg-status-warning/15 text-status-warning rounded">REVIEW</span>
+</div>
+<p class="font-body-md text-body-md text-foreground-muted mb-1">电量极低即将关机</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+<p class="font-label-md text-label-md text-foreground-muted">Battery Critical Low</p>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-surface-elevated text-foreground-muted">
+              15/20c
+            </span>
+</div>
+</div>
+<!-- ITEM 5: KW_LAP_SUMMARY_DIST -->
+<div class="p-3 rounded-lg border border-outline-variant/30 bg-surface-base/50 hover:bg-surface-elevated/40 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-kw text-mono-kw text-foreground-main">KW_LAP_SUMMARY_DIST</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 bg-secondary/10 text-secondary rounded">TM 100%</span>
+</div>
+<p class="font-body-md text-body-md text-foreground-muted mb-1">单圈计圈总里程</p>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+<p class="font-label-md text-label-md text-foreground-muted">Lap Summary Distance</p>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-status-success/10 text-status-success">
+              20/32c
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- PANE 3: Deep Translation & Hardware Emulation Workspace (Flex-1) -->
+<section class="flex-1 bg-surface-base/30 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- Metadata Header Bar -->
+<div class="flex items-center justify-between bg-surface-container-low/60 border border-outline-variant/30 rounded-xl px-4 py-3">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="terminal">terminal</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono-kw text-mono-kw text-foreground-main font-bold">KW_POWER_ZONE_ALERT</span>
+<span class="px-2 py-0.5 rounded bg-primary-container/20 text-primary font-mono-metric text-mono-metric">LCD_ALERT_STRING</span>
+</div>
+<p class="font-mono-metric text-mono-metric text-foreground-muted">SRAM: <span class="text-tertiary">0x004F2A</span> • Max Physical Buffer: <strong class="text-foreground-main">18 bytes</strong> • Encoding: UTF-8 Static</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded bg-surface-elevated hover:bg-surface-bright border border-outline-variant/40 text-foreground-muted hover:text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="history">history</span>
+<span>Diff History</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-elevated hover:bg-surface-bright border border-outline-variant/40 text-foreground-muted hover:text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="bookmark">bookmark</span>
+<span>Lock Key</span>
+</button>
+</div>
+</div>
+<!-- Master-Detail Translation Box (Source & Target) -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Source Box (Read Only) -->
+<div class="bg-surface-container-low/70 border border-outline-variant/30 rounded-xl p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5 text-foreground-muted font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="translate">translate</span>
+<span>Source Term (zh-CN)</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-surface-elevated text-foreground-muted border border-outline-variant/30">
+                Top Warning Bar / Pop-up Banner
+              </span>
+</div>
+<div class="p-3 bg-surface-container-lowest/80 rounded-lg border border-outline-variant/20 mb-3">
+<p class="text-headline-sm font-headline-sm text-foreground-main select-all">功率目标区间超限报警</p>
+</div>
+</div>
+<div class="text-body-sm font-body-sm text-foreground-muted border-t border-outline-variant/20 pt-2 flex items-start gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary mt-0.5" data-icon="info">info</span>
+<span>Triggered when rider power output exceeds target zone by &gt;15W for 5+ seconds. Displayed on top LCD 2.4-inch banner.</span>
+</div>
+</div>
+<!-- Target Box (Editable) -->
+<div class="bg-surface-container-low/90 border border-primary-container/40 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5 text-primary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]" data-icon="edit">edit</span>
+<span>Target Translation (en-US)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1 font-mono-metric text-mono-metric text-status-success">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                  Auto-Saved
+                </span>
+</div>
+</div>
+<!-- Input Form Field -->
+<div class="relative">
+<input class="w-full bg-surface-container-lowest/90 border-2 border-primary-container rounded-lg p-3 text-headline-sm font-headline-sm text-foreground-main focus:outline-none focus:ring-2 focus:ring-primary-container/30 transition-all font-mono-kw" type="text" value="Power Zone Alert"/>
+</div>
+<!-- Character Constraint Meter -->
+<div class="mt-3 flex flex-col gap-1.5">
+<div class="flex items-center justify-between font-mono-metric text-mono-metric">
+<span class="text-foreground-muted">Physical Glyph Capacity</span>
+<span class="text-status-success font-semibold">16 / 18 chars (88.8% Safe)</span>
+</div>
+<div class="w-full h-2 bg-surface-elevated rounded-full overflow-hidden flex">
+<div class="h-full bg-status-success rounded-full" style="width: 88.8%"></div>
+</div>
+</div>
+</div>
+<!-- Token Validation and Actions -->
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-1.5 font-mono-metric text-mono-metric text-secondary bg-secondary/10 px-2 py-1 rounded border border-secondary/20">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+<span>Printf variable tokens validated</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-surface-elevated text-foreground-muted hover:text-on-surface" title="Revert to Master">
+<span class="material-symbols-outlined text-[16px]" data-icon="undo">undo</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-elevated text-foreground-muted hover:text-on-surface" title="Verify Glossary">
+<span class="material-symbols-outlined text-[16px]" data-icon="fact_check">fact_check</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Split Bottom Row: Hardware LCD Matrix Simulation & AI DeepSeek Copilot -->
+<div class="grid grid-cols-12 gap-4">
+<!-- Physical Hardware LCD Matrix Bezel (Col-span-5) -->
+<div class="col-span-5 bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="developer_board">developer_board</span>
+<span class="font-label-md text-label-md text-foreground-main font-semibold">C606 LCD 2.4" Display Matrix</span>
+</div>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-surface-elevated text-foreground-muted">400x240 px</span>
+</div>
+<!-- The Realistic Hardware Computer Bezel Container -->
+<div class="relative mx-auto my-1 w-full max-w-[340px] aspect-[4/3] rounded-2xl bg-[#050811] p-3 border-4 border-slate-800 shadow-2xl flex flex-col justify-between ring-1 ring-white/10">
+<!-- Magene Logo Emprint on top bezel -->
+<div class="flex items-center justify-between px-1 text-[10px] font-mono-metric text-slate-500">
+<span class="font-bold tracking-widest text-slate-400">MAGENE</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px] text-emerald-400" data-icon="gps_fixed">gps_fixed</span>
+<span class="material-symbols-outlined text-[12px] text-slate-400" data-icon="battery_5_bar">battery_5_bar</span>
+<span>12:45</span>
+</div>
+</div>
+<!-- Simulated Sunlight Color LCD Screen Area -->
+<div class="w-full flex-1 rounded bg-[#090e1a] border border-cyan-500/20 p-2.5 flex flex-col justify-between relative overflow-hidden font-mono-kw">
+<!-- Pixel Grid Overlay Texture (Subtle LCD Matrix Feel) -->
+<div class="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:4px_4px]"></div>
+<!-- Top Firmware Alert Banner (The Active Translated Element) -->
+<div class="w-full bg-primary-container text-black font-extrabold px-2 py-1 rounded-sm text-center text-xs tracking-wider shadow animate-pulse">
+                POWER ZONE ALERT
+              </div>
+<!-- Main Cycling Telemetry Mockup Inside Screen -->
+<div class="grid grid-cols-2 gap-2 my-auto text-center">
+<div class="bg-slate-900/80 p-1.5 rounded border border-slate-800">
+<div class="text-[9px] text-slate-400 font-mono-metric">WATTS (3s)</div>
+<div class="text-xl font-bold text-primary tracking-tight">342<span class="text-[10px] ml-0.5 text-slate-400">W</span></div>
+</div>
+<div class="bg-slate-900/80 p-1.5 rounded border border-slate-800">
+<div class="text-[9px] text-slate-400 font-mono-metric">CADENCE</div>
+<div class="text-xl font-bold text-secondary tracking-tight">96<span class="text-[10px] ml-0.5 text-slate-400">RPM</span></div>
+</div>
+</div>
+<!-- Bottom Status Message -->
+<div class="flex items-center justify-between text-[9px] text-slate-400 border-t border-slate-800/80 pt-1">
+<span>ZONE 5: VO2 MAX</span>
+<span class="text-emerald-400 font-semibold">+18W OVER</span>
+</div>
+</div>
+<!-- Bottom Bezel Button Marker -->
+<div class="text-center text-[8px] font-mono-metric text-slate-600 mt-1 uppercase tracking-widest">
+              C606 Smart GPS Computer
+            </div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-foreground-muted mt-2">
+<span>Clipping Boundary: <strong class="text-status-success font-semibold">0px Safe Margin</strong></span>
+<span class="font-mono-metric text-mono-metric text-secondary">Anti-aliased Bitmap Font</span>
+</div>
+</div>
+<!-- AI Copilot & Memory Match Widget (Col-span-7) -->
+<div class="col-span-7 bg-surface-container-low/70 border border-outline-variant/30 rounded-xl p-4 flex flex-col justify-between">
+<div>
+<!-- Header -->
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-secondary/20 border border-secondary/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[16px]" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-foreground-main font-semibold">DeepSeek-V3 Copilot</h3>
+<p class="font-mono-metric text-mono-metric text-foreground-muted">Model: DS-V3-HW-FP8 • Low-latency Firmware Engine</p>
+</div>
+</div>
+<span class="font-mono-metric text-mono-metric px-2 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/30">
+                CoT Reasoning
+              </span>
+</div>
+<!-- Chain-of-Thought Summary (Collapsible Style) -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-outline-variant/20 mb-3 text-body-sm font-body-sm">
+<div class="flex items-center justify-between text-foreground-muted mb-1 font-mono-metric text-mono-metric text-[10px]">
+<span>Thought for 1.8s (Analysis)</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="expand_more">expand_more</span>
+</div>
+<ul class="text-foreground-muted space-y-1 font-mono-metric text-mono-metric text-[11px] leading-relaxed">
+<li class="flex items-start gap-1.5">
+<span class="text-secondary">•</span>
+<span><strong>Rule Lookup:</strong> Terminology #41 mandates "Alert" instead of "Warning" for zone exceedance.</span>
+</li>
+<li class="flex items-start gap-1.5">
+<span class="text-status-success">•</span>
+<span><strong>Hardware Check:</strong> 16 chars ≤ 18 chars LCD buffer. Safe for C606 2.4" 400x240 display.</span>
+</li>
+</ul>
+</div>
+<!-- Translation Memory Recommendations -->
+<div class="space-y-2">
+<div class="p-2.5 rounded-lg bg-secondary/10 border border-secondary/30 flex items-center justify-between hover:bg-secondary/15 cursor-pointer transition-colors">
+<div>
+<div class="flex items-center gap-2 mb-0.5">
+<span class="font-label-md text-label-md text-foreground-main font-semibold">Power Zone Alert</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 rounded bg-status-success/20 text-status-success font-semibold">16 chars Safe</span>
+</div>
+<p class="font-body-sm text-body-sm text-foreground-muted text-[11px]">Recommended: Matches Magene C-Series UI Specification v4</p>
+</div>
+<button class="px-2.5 py-1 rounded bg-secondary text-on-secondary font-label-md text-label-md font-semibold hover:bg-secondary/90 transition-colors">
+                  Apply
+                </button>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/60 border border-outline-variant/20 flex items-center justify-between hover:bg-surface-elevated/40 cursor-pointer transition-colors">
+<div>
+<div class="flex items-center gap-2 mb-0.5">
+<span class="font-label-md text-label-md text-foreground-muted">Power Zone Warning</span>
+<span class="font-mono-metric text-mono-metric px-1.5 py-0.2 rounded bg-status-warning/20 text-status-warning font-semibold">18 chars (Limit)</span>
+</div>
+<p class="font-body-sm text-body-sm text-foreground-muted text-[11px]">Master TM Match (from C406 firmware baseline)</p>
+</div>
+<button class="px-2.5 py-1 rounded bg-surface-elevated hover:bg-surface-bright text-foreground-muted font-label-md text-label-md transition-colors">
+                  Review
+                </button>
+</div>
+</div>
+</div>
+<!-- Bottom Action Confirmation Bar -->
+<div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2 text-foreground-muted font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-status-success" data-icon="task_alt">task_alt</span>
+<span>All QA automated gates passed</span>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container/90 text-on-primary-fixed font-label-md text-label-md font-bold transition-all shadow-md active:scale-[0.98]">
+<span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+<span>Adopt &amp; Push to Build</span>
+<kbd class="font-mono-metric text-mono-metric bg-black/20 px-1.5 py-0.5 rounded text-[10px]">Cmd+Enter</kbd>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+    // Lightweight micro-interaction to switch category active state visually
+    document.querySelectorAll('section:nth-of-type(1) button').forEach(button => {
+      button.addEventListener('click', () => {
+        // Simple visual feedback on category switch
+        console.log('Selected subsystem:', button.innerText.trim());
+      });
+    });
+
+    // Keyboard shortcut handler for Cmd+Enter (Simulated push)
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        const primaryBtn = document.querySelector('button.bg-primary-container');
+        if (primaryBtn) {
+          primaryBtn.classList.add('scale-95');
+          setTimeout(() => primaryBtn.classList.remove('scale-95'), 150);
+        }
+      }
+    });
+  </script>
+</body></html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlossaHub - 固件多语言系统设计大赏 (Enterprise Admin & Showcase)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#f97316',
+              cyan: '#06b6d4',
+              slate: '#0f172a'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #030712;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
+    .glass-bar {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .active-pill {
+      background: #f97316;
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+    }
+    .preview-frame {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#030712]">
+
+  <!-- Top Showcase Navigation Bar -->
+  <header class="glass-bar sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
+    <!-- Brand Info -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+        <span class="material-symbols-outlined text-white text-xl">terminal</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base tracking-tight text-white">GlossaHub</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-mono border border-orange-500/30">纯后端管理平台</span>
+        </div>
+        <p class="text-xs text-slate-400">固件与硬件词条翻译协同平台 · 纯后端管理控制台 (Dark & Light)</p>
+      </div>
+    </div>
+
+    <!-- Mode & Page Switcher -->
+    <div class="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800">
+      <button onclick="switchDesign('admin-dark')" id="btn-admin-dark" class="active-pill px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all">
+        <span class="material-symbols-outlined text-sm">table_chart</span>
+        <span>深色 · 管理后台 (推荐)</span>
+      </button>
+      <button onclick="switchDesign('admin-light')" id="btn-admin-light" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-1.5 transition-all">
+        <span class="material-symbols-outlined text-sm">light_mode</span>
+        <span>浅色 · 管理后台 (推荐)</span>
+      </button>
+      <div class="w-px h-4 bg-slate-800 mx-1"></div>
+      <button onclick="switchDesign('dark-cat')" id="btn-dark-cat" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-1.5 transition-all">
+        <span class="material-symbols-outlined text-sm">view_sidebar</span>
+        <span>备选 · CAT工作台</span>
+      </button>
+      <button onclick="switchDesign('dark-dash')" id="btn-dark-dash" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-1.5 transition-all">
+        <span class="material-symbols-outlined text-sm">dashboard</span>
+        <span>备选 · 全景大盘</span>
+      </button>
+    </div>
+
+    <!-- View Mode Controls -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-xs">
+        <button onclick="setViewType('html')" id="btn-view-html" class="px-3 py-1 rounded-md bg-slate-800 text-white font-medium flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs">code</span>
+          <span>交互实时页面</span>
+        </button>
+        <button onclick="setViewType('image')" id="btn-view-image" class="px-3 py-1 rounded-md text-slate-400 hover:text-white flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs">image</span>
+          <span>视觉图</span>
+        </button>
+      </div>
+
+      <a id="btn-open-external" href="stitch_main_page.html" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 border border-slate-700/80 transition-all">
+        <span>全屏独立打开</span>
+        <span class="material-symbols-outlined text-xs">open_in_new</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Viewport Container -->
+  <main class="flex-1 flex flex-col p-6 items-center justify-center overflow-auto">
+    <!-- Active Description Badge -->
+    <div class="mb-3 flex items-center justify-between w-full max-w-[1440px] px-2 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-orange-400 text-base">verified</span>
+        <span id="design-title" class="font-semibold text-slate-200 text-sm">深色版 · 企业级纯后端词条管理控制台 (高信息密度数据表格 + 顶部清晰操作入口 + 侧滑抽屉)</span>
+      </div>
+      <div class="flex items-center gap-4 font-mono text-slate-500">
+        <span id="design-meta">高密度数据网格 · 硬件字长超限拦截 · 2.4" 阳光屏点阵抽屉模拟 · 细粒度时光机</span>
+        <span>文件: <code id="screen-id" class="text-slate-400">stitch_main_page.html</code></span>
+      </div>
+    </div>
+
+    <!-- Frame Wrapper -->
+    <div class="w-full max-w-[1440px] h-[860px] bg-slate-900 rounded-2xl border border-slate-800/90 shadow-2xl overflow-hidden relative">
+      <!-- HTML Iframe View -->
+      <iframe id="main-iframe" src="stitch_main_page.html" class="w-full h-full border-0 preview-frame"></iframe>
+
+      <!-- Image View (Hidden by default) -->
+      <div id="image-container" class="w-full h-full hidden overflow-auto flex items-center justify-center bg-black/50 p-4">
+        <img id="main-screenshot" src="/Users/jacko/.gemini/antigravity-ide/brain/44d78e2a-b2bd-4ee4-b305-42505f8c3d83/dark_cat_studio_v2.png" alt="Design Screenshot" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl border border-slate-800">
+      </div>
+    </div>
+
+    <!-- Quick Cards Switcher Bar -->
+    <div class="mt-5 grid grid-cols-4 gap-4 w-full max-w-[1440px]">
+      <!-- Card 1: Admin Dark -->
+      <div onclick="switchDesign('admin-dark')" class="cursor-pointer group p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border-2 border-orange-500/60 transition-all shadow-md">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-orange-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">table_chart</span> 深色 · 管理后台 (推荐)
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">纯B端控制台</span>
+        </div>
+        <p class="text-xs text-slate-400 line-clamp-2">告别分散Metro卡片。标准左树右表、顶部新建/导入/导出入口、高密度数据表格、右侧滑出抽屉。</p>
+      </div>
+
+      <!-- Card 2: Admin Light -->
+      <div onclick="switchDesign('admin-light')" class="cursor-pointer group p-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/50 transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-200 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">light_mode</span> 浅色 · 管理后台 (推荐)
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">清爽白底</span>
+        </div>
+        <p class="text-xs text-slate-400 line-clamp-2">纯正企业白底仪表盘风格、Slate 灰阶层级、高反差字形、适合明亮办公环境下长时间操作审校。</p>
+      </div>
+
+      <!-- Card 3: Dark Cat -->
+      <div onclick="switchDesign('dark-cat')" class="cursor-pointer group p-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/50 transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-sky-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">view_sidebar</span> 备选 · CAT 工作台
+          </span>
+          <span class="text-[10px] font-mono text-slate-500">三栏主从</span>
+        </div>
+        <p class="text-xs text-slate-400 line-clamp-2">专为专业本地化译员设计的 3-Pane 沉浸式翻译工作室，适合密集逐句精翻。</p>
+      </div>
+
+      <!-- Card 4: Dark Dashboard -->
+      <div onclick="switchDesign('dark-dash')" class="cursor-pointer group p-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-orange-500/50 transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-amber-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">dashboard</span> 备选 · 全景大盘
+          </span>
+          <span class="text-[10px] font-mono text-slate-500">版本管线</span>
+        </div>
+        <p class="text-xs text-slate-400 line-clamp-2">面向管理层及 Release Manager 的版本发布漏斗、全语种覆盖率环形看板与差分台账。</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const designs = {
+      'admin-dark': {
+        title: '深色版 · 企业级纯后端词条管理控制台 (高信息密度数据表格 + 顶部清晰操作入口 + 侧滑抽屉)',
+        meta: '高密度数据网格 · 硬件字长超限拦截 · 2.4" 阳光屏点阵抽屉模拟 · 细粒度时光机',
+        screenId: 'stitch_main_page.html',
+        htmlFile: 'stitch_main_page.html',
+        imageFile: '/Users/jacko/.gemini/antigravity-ide/brain/44d78e2a-b2bd-4ee4-b305-42505f8c3d83/dark_cat_studio_v2.png'
+      },
+      'admin-light': {
+        title: '浅色版 · 企业级纯后端词条管理控制台 (纯净清爽白底 + 严谨灰阶 + 极佳抗疲劳可读性)',
+        meta: 'Slate-50底色 · 清晰操作入口 · 硬件字节超限预警 · 细粒度时光机',
+        screenId: 'admin_glossary_light.html',
+        htmlFile: 'admin_glossary_light.html',
+        imageFile: '/Users/jacko/.gemini/antigravity-ide/brain/44d78e2a-b2bd-4ee4-b305-42505f8c3d83/light_cat_studio_v1.png'
+      },
+      'dark-cat': {
+        title: '深色版 · CAT 沉浸式翻译工作台 (HeroUI Pro Mail 范式)',
+        meta: 'HeroUI v3 · Tailwind CSS · 3-Pane 空间规范',
+        screenId: 'dark_cat_studio.html',
+        htmlFile: 'dark_cat_studio.html',
+        imageFile: '/Users/jacko/.gemini/antigravity-ide/brain/44d78e2a-b2bd-4ee4-b305-42505f8c3d83/dark_cat_studio_v2.png'
+      },
+      'dark-dash': {
+        title: '深色版 · 固件版本管线与全景大盘 (HeroUI Pro Dashboard 原型)',
+        meta: '多硬件阶段推进 · 语种覆盖雷达 · 差分对账台账',
+        screenId: 'dark_dashboard.html',
+        htmlFile: 'dark_dashboard.html',
+        imageFile: '/Users/jacko/.gemini/antigravity-ide/brain/44d78e2a-b2bd-4ee4-b305-42505f8c3d83/dark_dashboard_v1.png'
+      }
+    };
+
+    let currentDesign = 'admin-dark';
+    let currentView = 'html';
+
+    function switchDesign(key) {
+      currentDesign = key;
+      const d = designs[key];
+      
+      // Update Texts
+      document.getElementById('design-title').textContent = d.title;
+      document.getElementById('design-meta').textContent = d.meta;
+      document.getElementById('screen-id').textContent = d.screenId;
+      document.getElementById('btn-open-external').href = d.htmlFile;
+
+      // Update Frames
+      document.getElementById('main-iframe').src = d.htmlFile;
+      document.getElementById('main-screenshot').src = d.imageFile;
+
+      // Update Button Styles
+      const buttons = ['admin-dark', 'admin-light', 'dark-cat', 'dark-dash'];
+      buttons.forEach(b => {
+        const el = document.getElementById('btn-' + b);
+        if (el) {
+          if (b === key) {
+            el.className = 'active-pill px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all';
+          } else {
+            el.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-1.5 transition-all';
+          }
+        }
+      });
+    }
+
+    function setViewType(type) {
+      currentView = type;
+      const btnHtml = document.getElementById('btn-view-html');
+      const btnImage = document.getElementById('btn-view-image');
+      const iframe = document.getElementById('main-iframe');
+      const imgContainer = document.getElementById('image-container');
+
+      if (type === 'html') {
+        iframe.classList.remove('hidden');
+        imgContainer.classList.add('hidden');
+        btnHtml.className = 'px-3 py-1 rounded-md bg-slate-800 text-white font-medium flex items-center gap-1';
+        btnImage.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-white flex items-center gap-1';
+      } else {
+        iframe.classList.add('hidden');
+        imgContainer.classList.remove('hidden');
+        btnImage.className = 'px-3 py-1 rounded-md bg-slate-800 text-white font-medium flex items-center gap-1';
+        btnHtml.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-white flex items-center gap-1';
+      }
+    }
+  </script>
+</body>
+</html>
