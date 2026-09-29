@@ -142,15 +142,15 @@ export const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-root ${theme} w-screen h-screen flex flex-col overflow-hidden`}>
+      <div className={`app-root ${theme} w-screen h-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100`}>
         {/* Global Dev Header */}
-        <header className="h-11 bg-surface-raised border-b border-border-default flex items-center justify-between px-4 z-40 select-none">
+        <header className="h-11 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-40 select-none">
           <div className="flex items-center gap-3">
             <span className="text-primary-500 font-bold text-base tracking-wider flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-primary-500 inline-block animate-pulse"></span>
               GlossaHub v2.0
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-surface-subtle text-fg-muted font-mono">
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
               Magene C606 Firmware Studio
             </span>
             <span className="text-xs px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 font-mono border border-emerald-800/40">
@@ -161,7 +161,7 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="text-xs px-2.5 py-1 rounded bg-surface-subtle hover:bg-surface-raised border border-border-default text-fg-default transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <span>{theme === 'dark' ? '🌙 暗黑主题' : '☀️ 明亮主题'}</span>
             </button>
