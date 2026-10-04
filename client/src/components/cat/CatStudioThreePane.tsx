@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import {
+  ArrowLeft,
+  Sparkles,
+  BookOpen,
+  Zap,
+  Lock,
+  Unlock,
+  History,
+  CheckCircle2,
+  Copy,
+  AlertTriangle,
+  Lightbulb,
+  Check
+} from 'lucide-react';
 import { TermItem } from '../../hooks/useTermsQuery';
 import { useCatStudioStore } from '../../stores/cat-studio.store';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { HardwareConstraintMeter } from '../ui/HardwareConstraintMeter';
-import { HardwareScreenEmulator } from './HardwareScreenEmulator';
-import { VisualContextViewer } from './VisualContextViewer';
-import { AICopilotDock, TMSuggestion, AICandidate } from './AICopilotDock';
+import { TMSuggestion, AICandidate } from './AICopilotDock';
 
 export interface CatStudioThreePaneProps {
   terms: TermItem[];
@@ -13,20 +25,18 @@ export interface CatStudioThreePaneProps {
   activeLanguage: string;
   onSaveTermTranslation: (termId: string, lang: string, text: string) => Promise<void>;
   onTriggerHistoryDrawer: () => void;
+  onBackToMatrix?: () => void;
   mockTMSuggestions?: TMSuggestion[];
   mockAICandidates?: AICandidate[];
 }
 
-/**
- * CatStudioThreePane Component (TASK-701)
- * HeroUI Pro Mail-Template inspired 3-pane layout for high-throughput translation
- */
 export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
   terms,
   languages,
   activeLanguage,
   onSaveTermTranslation,
   onTriggerHistoryDrawer,
+  onBackToMatrix,
   mockTMSuggestions = [],
   mockAICandidates = [],
 }) => {
@@ -35,12 +45,13 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
   const [editText, setEditText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [copiedZh, setCopiedZh] = useState(false);
 
-  // Active term derived from store or first term
+  // Active term
   const activeTerm =
     terms.find((t) => t.id === store.activeTermId) || terms[0] || null;
 
-  // Initialize/sync edit text when active term or language changes
+  // Sync edit text when term or language changes
   useEffect(() => {
     if (activeTerm) {
       const currentTranslation = activeTerm.translations[activeLanguage]?.text || '';
@@ -86,146 +97,89 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
     onToggleHistory: onTriggerHistoryDrawer,
   });
 
-  // Filtered terms for Pane 2
+  // Filtered terms for Left Pane
   const filteredTerms = terms.filter((t) => {
-    if (store.searchQuery && !t.kw.toLowerCase().includes(store.searchQuery.toLowerCase()) && !t.zhCn.includes(store.searchQuery)) {
-      return false;
+    if (store.searchQuery) {
+      const q = store.searchQuery.toLowerCase();
+      if (!t.kw.toLowerCase().includes(q) && !t.zhCn.includes(store.searchQuery)) {
+        return false;
+      }
+    }
+    if (store.filterStatus === 'todo') {
+      const trans = t.translations[activeLanguage]?.text?.trim();
+      if (trans) return false;
     }
     return true;
   });
 
+  const handleCopyZh = () => {
+    if (!activeTerm) return;
+    navigator.clipboard.writeText(activeTerm.zhCn);
+    setCopiedZh(true);
+    setTimeout(() => setCopiedZh(false), 1500);
+  };
+
   return (
     <div
-      className="flex w-full h-full min-h-[720px] bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl select-none"
+      className="flex w-full h-full bg-slate-950 text-slate-100 overflow-hidden select-none"
       data-testid="cat-studio-three-pane"
     >
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* PANE 1: 分类与漏斗 (300px) */}
+      {/* PANE 1: 词条任务导航流 (320px) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="w-[280px] shrink-0 border-r border-slate-800 bg-slate-900/60 p-4 flex flex-col justify-between">
-        <div className="space-y-5">
-          {/* Target Language Selector */}
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-              目标翻译语种
-            </label>
-            <div className="grid grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto p-1 bg-slate-950/60 rounded-xl border border-slate-800">
-              {languages.map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => store.setActiveLanguage(lang)}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
-                    store.activeLanguage === lang
-                      ? 'bg-primary-500 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                  }`}
-                >
-                  <span className="uppercase">{lang}</span>
-                  {store.activeLanguage === lang && <span className="text-[10px]">●</span>}
-                </button>
-              ))}
+      <div className="w-80 shrink-0 border-r border-slate-800 bg-slate-900/40 flex flex-col">
+        {/* Top Filter and Search */}
+        <div className="p-3 border-b border-slate-800 space-y-2">
+          {onBackToMatrix && (
+            <button
+              onClick={onBackToMatrix}
+              className="text-xs text-slate-400 hover:text-primary-400 flex items-center gap-1 transition-colors cursor-pointer mb-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>返回词条矩阵大表</span>
+            </button>
+          )}
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-300">待办与词条清单</span>
+            <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px]">
+              <button
+                onClick={() => store.setFilterStatus('all')}
+                className={`px-2 py-0.5 rounded cursor-pointer ${
+                  store.filterStatus === 'all'
+                    ? 'bg-primary-500 text-white font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                全部 ({terms.length})
+              </button>
+              <button
+                onClick={() => store.setFilterStatus('todo')}
+                className={`px-2 py-0.5 rounded cursor-pointer ${
+                  store.filterStatus === 'todo'
+                    ? 'bg-primary-500 text-white font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                待翻译
+              </button>
             </div>
           </div>
 
-          {/* Module Filter */}
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-              功能模块分组
-            </label>
-            <div className="space-y-1">
-              {[
-                { id: 'all', label: '全部词条', icon: '📦' },
-                { id: 'riding', label: '骑行仪表盘', icon: '🚴' },
-                { id: 'sensors', label: '传感器与雷达', icon: '📡' },
-                { id: 'navigation', label: '地图与导航', icon: '🗺️' },
-                { id: 'system', label: '系统设置', icon: '⚙️' },
-              ].map((mod) => (
-                <button
-                  key={mod.id}
-                  onClick={() => store.setFilterModule(mod.id)}
-                  className={`w-full px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors ${
-                    store.filterModule === mod.id
-                      ? 'bg-slate-800 text-primary-400 font-bold border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                  }`}
-                >
-                  <span>{mod.icon}</span>
-                  <span>{mod.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-              QA 质检状态
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: 'all', label: '全部' },
-                { id: 'todo', label: '待翻译' },
-                { id: 'qa_warning', label: '⚠️ 溢出/报错' },
-                { id: 'approved', label: '已审批' },
-              ].map((st) => (
-                <button
-                  key={st.id}
-                  onClick={() => store.setFilterStatus(st.id as any)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] transition-colors ${
-                    store.filterStatus === st.id
-                      ? 'bg-accent-500/20 text-accent-400 border border-accent-500/40 font-semibold'
-                      : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Shortcut Cheat-Sheet */}
-        <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 text-[10px] text-slate-400 space-y-1">
-          <div className="font-bold text-slate-300 mb-1">⌨️ 快捷键指南</div>
-          <div className="flex justify-between">
-            <span>步进切换</span>
-            <kbd className="font-mono text-slate-300">J / K</kbd>
-          </div>
-          <div className="flex justify-between">
-            <span>保存并下移</span>
-            <kbd className="font-mono text-slate-300">Ctrl + ↵</kbd>
-          </div>
-          <div className="flex justify-between">
-            <span>采纳 TM / AI</span>
-            <kbd className="font-mono text-slate-300">Alt + 1 / 2</kbd>
-          </div>
-          <div className="flex justify-between">
-            <span>时光机历史</span>
-            <kbd className="font-mono text-slate-300">Alt + H</kbd>
-          </div>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* PANE 2: 高密度词条导航列表 (360px) */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="w-[360px] shrink-0 border-r border-slate-800 bg-slate-950 flex flex-col">
-        {/* Search Header */}
-        <div className="p-3 border-b border-slate-800">
           <input
             type="text"
             value={store.searchQuery}
             onChange={(e) => store.setSearchQuery(e.target.value)}
             placeholder="搜索 KW 宏名或中文原义..."
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           />
         </div>
 
         {/* Scrollable Terms List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-800/50">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-800/40">
           {filteredTerms.map((term) => {
             const isSelected = activeTerm?.id === term.id;
-            const trans = term.translations[store.activeLanguage]?.text || '';
+            const trans = term.translations[activeLanguage]?.text || '';
             const isMissing = !trans.trim();
 
             return (
@@ -235,20 +189,19 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
                 className={`p-3 cursor-pointer transition-colors ${
                   isSelected
                     ? 'bg-primary-500/15 border-l-4 border-primary-500'
-                    : 'hover:bg-slate-900/60'
+                    : 'hover:bg-slate-900/80'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono text-xs font-bold text-slate-200 truncate max-w-[200px]">
+                  <span className="font-mono text-xs font-bold text-slate-200 truncate max-w-[190px]">
                     {term.kw}
                   </span>
-                  {term.isLocked && <span className="text-xs">🔒</span>}
                   {isMissing ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-semibold">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 font-semibold font-mono">
                       待翻
                     </span>
                   ) : (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 font-semibold font-mono">
                       已就绪
                     </span>
                   )}
@@ -256,22 +209,28 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
                 <p className="text-xs text-slate-400 truncate">{term.zhCn}</p>
                 {trans && (
                   <p className="text-[11px] text-slate-500 truncate mt-0.5 italic">
-                    {store.activeLanguage}: {trans}
+                    {activeLanguage.toUpperCase()}: {trans}
                   </p>
                 )}
               </div>
             );
           })}
         </div>
+
+        {/* Bottom Shortcut Bar */}
+        <div className="p-2.5 bg-slate-950/80 border-t border-slate-800/80 text-[10px] text-slate-400 flex items-center justify-between font-mono">
+          <span>保存并下移: <kbd className="text-slate-300">Ctrl+↵</kbd></span>
+          <span>采纳TM/AI: <kbd className="text-slate-300">Alt+1/2</kbd></span>
+        </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* PANE 3: 沉浸式翻译主体与硬件上下文 (1fr) */}
+      {/* PANE 2: 核心编辑主体与上下文 (1fr) */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-slate-950 overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-y-auto p-6 space-y-5">
         {activeTerm ? (
-          <div className="p-6 space-y-6 max-w-4xl">
-            {/* Top Info Bar */}
+          <>
+            {/* Term Title & Actions */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -279,38 +238,51 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
                     {activeTerm.kw}
                   </h2>
                   {activeTerm.isLocked && (
-                    <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                      🔒 锁定词条
+                    <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1 font-mono">
+                      <Lock className="w-3 h-3" />
+                      <span>已加锁</span>
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  ID: {activeTerm.id} • 硬件型号: C606 Smart Computer
+                <p className="text-xs text-slate-400 mt-1">
+                  所属模块: <span className="text-slate-300 font-medium">{activeTerm.meta?.module || 'activity'}</span>
+                  {activeTerm.comment && <span> • 备注: {activeTerm.comment}</span>}
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={onTriggerHistoryDrawer}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
-                  <span>⏳ 时光机历史 (Alt+H)</span>
+                  <History className="w-3.5 h-3.5" />
+                  <span>时光机历史 (Alt+H)</span>
                 </button>
                 <button
                   disabled={isSaving || activeTerm.isLocked}
                   onClick={handleSaveAndNext}
-                  className="px-4 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-md shadow-primary-500/20 disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold shadow-md shadow-primary-500/20 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
-                  {isSaving ? '保存中...' : '保存并跳转 (Ctrl+↵)'}
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isSaving ? '保存中...' : '保存并跳转下一条 (Ctrl+↵)'}</span>
                 </button>
               </div>
             </div>
 
             {/* Chinese Benchmark Card */}
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                中文基准原文 (zh-CN)
-              </span>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  中文基准原文 (zh-CN)
+                </span>
+                <button
+                  onClick={handleCopyZh}
+                  className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>{copiedZh ? '已复制' : '复制原文'}</span>
+                </button>
+              </div>
               <p className="text-base text-slate-100 font-medium leading-relaxed">
                 {activeTerm.zhCn}
               </p>
@@ -319,8 +291,8 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
             {/* Target Language Translation Editor */}
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-primary-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span>{store.activeLanguage} 目标译文编辑</span>
+                <span className="text-[11px] font-bold text-primary-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <span>{activeLanguage.toUpperCase()} 目标语言译文编辑</span>
                   {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
                 </span>
                 <HardwareConstraintMeter
@@ -337,45 +309,64 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
                   setEditText(e.target.value);
                   setIsDirty(true);
                 }}
-                placeholder={`在此录入 ${store.activeLanguage} 目标译文...`}
-                className="w-full p-3 rounded-lg bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 resize-none font-sans"
+                placeholder={`在此输入 ${activeLanguage.toUpperCase()} 译文...`}
+                className="w-full p-3 rounded-lg bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-60 resize-none font-sans"
               />
             </div>
 
-            {/* Bottom 2 Columns: Hardware Simulator & AI Dock */}
+            {/* Translation Assets Dock (Glossary + TM + AI) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left Context: C606 LCD/OLED Dot-matrix Emulator */}
-              <HardwareScreenEmulator
-                mode={store.activeHardwareMode}
-                text={editText}
-                kw={activeTerm.kw}
-                onToggleMode={store.setHardwareMode}
-              />
+              {/* TM Memory Matching */}
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>翻译记忆库匹配 (TM)</span>
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                    92% 匹配
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 text-xs font-mono text-slate-200">
+                  {mockTMSuggestions[0]?.targetText || 'Heart rate sensor disconnected'}
+                </div>
+                <button
+                  onClick={() => {
+                    const text = mockTMSuggestions[0]?.targetText || 'Heart rate sensor disconnected';
+                    setEditText(text);
+                    setIsDirty(true);
+                  }}
+                  className="w-full py-1 rounded bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  采纳 TM 译文 (Alt+1)
+                </button>
+              </div>
 
-              {/* Right Context: AI Copilot Dock */}
-              <AICopilotDock
-                tmSuggestions={mockTMSuggestions}
-                aiCandidates={mockAICandidates}
-                isLoadingAI={false}
-                onAdoptTM={(txt) => {
-                  setEditText(txt);
-                  setIsDirty(true);
-                }}
-                onAdoptAI={(txt) => {
-                  setEditText(txt);
-                  setIsDirty(true);
-                }}
-                onTriggerAIRefresh={() => {}}
-              />
+              {/* AI Copilot Candidates */}
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-accent-400 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>多模型 AI 建议 (DeepSeek-V3)</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-500">直连网关 &lt;300ms</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 text-xs font-mono text-slate-200">
+                  {mockAICandidates[0]?.text || 'Heart rate sensor disconnected'}
+                </div>
+                <button
+                  onClick={() => {
+                    const text = mockAICandidates[0]?.text || 'Heart rate sensor disconnected';
+                    setEditText(text);
+                    setIsDirty(true);
+                  }}
+                  className="w-full py-1 rounded bg-slate-800 hover:bg-accent-600 hover:text-slate-950 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  采纳 AI 候选 (Alt+2)
+                </button>
+              </div>
             </div>
-
-            {/* Visual Context Viewer (Screenshot Hotspot) */}
-            <VisualContextViewer
-              kw={activeTerm.kw}
-              imageUrl={null} // Can be populated with mock or real image
-              hotspot={null}
-            />
-          </div>
+          </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-slate-500 text-xs">
             选择左侧词条以开始翻译
