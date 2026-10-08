@@ -1,7 +1,7 @@
 # GlossaHub 下一代企业级固件词条平台 开发工单全景总览 (TICKETS.md)
 
 > **文档标识**：`GLOSSA-AGILE-TICKETS-V2.0`  
-> **编写日期**：2026-09-28  
+> **更新日期**：2026-10-08  
 > **归档位置**：`design/TICKETS.md`  
 > **工单明细目录**：[`design/tickets/`](./tickets/)  
 > **关联架构基准**：
@@ -14,16 +14,18 @@
 
 ## 1. 敏捷开发冲刺总览与看板 (Agile Sprint Board & Burndown)
 
-系统按照敏捷垂直切片（Tracer-bullet Vertical Slices）与严格的单向依赖拓扑，将全量 9 大 Epic、26 个细粒度子任务划分为 **5 个开发冲刺阶段 (Sprints / Milestones)**。
+系统按照敏捷垂直切片（Tracer-bullet Vertical Slices）与严格的单向依赖拓扑，将全量 **14 大 Epic、44 个细粒度子任务** 划分为 **8 个开发冲刺阶段 (Sprints)**：
+- **Sprint 1 ~ 5 (已全部通过自动化测试闭环验收 100% DONE)**
+- **Sprint 6 ~ 8 (后续全栈联调、硬件约束增强与企业生产部署落地 TODO)**
 
 ```mermaid
 kanban
-  Sprint 1 [M1: 数据底座与兼容视图]
+  Sprint 1 [M1: 数据底座与兼容视图 - 100% DONE]
     [✔] TASK-101: Docker PG16 + pgvector 环境
     [✔] TASK-102: Drizzle ORM 7大表模型
     [✔] TASK-103: 存量数据无损迁移与对账
     [✔] TASK-104: 向后兼容视图 view_terms_legacy
-  Sprint 2 [M2: 核心服务与双引擎]
+  Sprint 2 [M2: 核心服务与双引擎 - 100% DONE]
     [✔] TASK-201: Fastify 整洁脚手架与异常
     [✔] TASK-202: 词条核心服务 TermService
     [✔] TASK-203: Legacy API Facade 垫片
@@ -34,12 +36,12 @@ kanban
     [✔] TASK-402: 固件 3D Diff 差分引擎
     [✔] TASK-403: 选择性增量合并 ApplyDiff
     [✔] TASK-404: ExcelJS 差异色块导出
-  Sprint 3 [M3: 直连 AI 网关与 QA 质检]
+  Sprint 3 [M3: 直连 AI 网关与 QA 质检 - 100% DONE]
     [✔] TASK-501: 多供应商直连适配网关
     [✔] TASK-502: 向量 TM 本地毫秒直通
     [✔] TASK-503: 微批聚合与并发控制
     [✔] TASK-504: L10n QA 质检与自纠错
-  Sprint 4 [M4: HeroUI 前端大网格与 CAT 工作台]
+  Sprint 4 [M4: HeroUI 前端大网格与 CAT 工作台 - 100% DONE]
     [✔] TASK-601: Design Tokens 与暗黑科技主题
     [✔] TASK-602: TanStack Query + Zustand 状态
     [✔] TASK-603: 万级数据 TanStack Virtual 网格
@@ -48,12 +50,28 @@ kanban
     [✔] TASK-702: 硬件屏幕 max_chars 动态仪表盘
     [✔] TASK-703: 真机 LCD/OLED 点阵拟真视窗
     [✔] TASK-704: Git 风格红绿 Diff 抽屉与安全模态
-  Sprint 5 [M5: CLI 工具链与上线割接]
+  Sprint 5 [M5: CLI 工具链与上线割接 - 100% DONE]
     [✔] TASK-801: glossa-cli 与 C 源码宏扫描
     [✔] TASK-802: 嵌入式 C 头文件 strings_lang 编译
     [✔] TASK-803: 移动端 XML 与 Strings 资产输出
     [✔] TASK-901: 75+ 存量 Golden Master 回归
     [✔] TASK-902: 灰度切流与 3 分钟应急回滚演练
+  Sprint 6 [M6: 前后端全量联调与持久化 - TODO]
+    [ ] TASK-1001: TanStack Query 全量对接 Fastify API
+    [ ] TASK-1002: 单元格防抖乐观更新与审计联动
+    [ ] TASK-1003: 拖拽导入 Excel/CSV 与 Diff 预检
+    [ ] TASK-1004: 主题与多语言视图偏好持久化
+  Sprint 7 [M7: 硬件真机热区与约束增强 - TODO]
+    [ ] TASK-1101: 硬件截图热区联动标注与 SVG 映射
+    [ ] TASK-1102: 固件点阵字体像素级字宽估算引擎
+    [ ] TASK-1201: 轻量企业身份鉴权与操作人注入
+    [ ] TASK-1202: 接口请求频次限制与 AI 防刷守卫
+  Sprint 8 [M8: 生产部署与工程化落地 - TODO]
+    [ ] TASK-1301: 生产级 Dockerfile 多阶段构建
+    [ ] TASK-1302: GitHub Actions CI/CD 与宏编译
+    [ ] TASK-1303: 生产就绪健康检查探针与 Nginx
+    [ ] TASK-1401: Playwright E2E 自动化端到端测试
+    [ ] TASK-1402: 生产环境冷启动与真实种子数据注入
 ```
 
 ---
@@ -93,6 +111,19 @@ kanban
 | [`TASK-803`](./tickets/TASK-803.md) | Sprint 5 | Epic 8: 研发工具 | 移动端多语言资产编译输出 (Android XML & iOS Strings) | P1 | 2d | 移动端/全栈 | **[DONE]** |
 | [`TASK-901`](./tickets/TASK-901.md) | Sprint 5 | Epic 9: 测试切流 | 75+ 存量 Golden Master 回归契约测试网 | P0 | 3d | QA/测试 | **[DONE]** |
 | [`TASK-902`](./tickets/TASK-902.md) | Sprint 5 | Epic 9: 测试切流 | 灰度切流演练与 3 分钟应急回滚预案实操验证 | P0 | 2d | DevOps/SRE | **[DONE]** |
+| [`TASK-1001`](./tickets/TASK-1001.md) | Sprint 6 | Epic 10: 联调持久化 | 前端 TanStack Query 全量对接 Fastify 后端 REST API | P0 | 3d | 前端/全栈 | **[TODO]** |
+| [`TASK-1002`](./tickets/TASK-1002.md) | Sprint 6 | Epic 10: 联调持久化 | 单元格内联编辑防抖、乐观更新与实时审计联动 | P0 | 2d | 前端 | **[TODO]** |
+| [`TASK-1003`](./tickets/TASK-1003.md) | Sprint 6 | Epic 10: 联调持久化 | 批量导入导出交互：拖拽上传 Excel/CSV 与 Diff 预检 | P1 | 3d | 前端/全栈 | **[TODO]** |
+| [`TASK-1004`](./tickets/TASK-1004.md) | Sprint 6 | Epic 10: 联调持久化 | 用户界面个性化偏好持久化：浅色/深色模式与展示列恢复 | P2 | 1d | 前端 | **[TODO]** |
+| [`TASK-1101`](./tickets/TASK-1101.md) | Sprint 7 | Epic 11: 硬件约束增强 | 硬件真机截图热区联动标注与 SVG 归一化矩形映射 | P1 | 3d | 前端/UI | **[TODO]** |
+| [`TASK-1102`](./tickets/TASK-1102.md) | Sprint 7 | Epic 11: 硬件约束增强 | 固件嵌入式点阵字体像素级物理字宽估算引擎 | P2 | 2d | 算法/前端 | **[TODO]** |
+| [`TASK-1201`](./tickets/TASK-1201.md) | Sprint 7 | Epic 12: 企业内网安全 | 轻量级企业身份鉴权与操作人上下文自动注入 | P1 | 2d | 后端 | **[TODO]** |
+| [`TASK-1202`](./tickets/TASK-1202.md) | Sprint 7 | Epic 12: 企业内网安全 | 接口请求频次限制与 AI 外部网关防刷保护 | P2 | 1.5d | 后端/DevOps | **[TODO]** |
+| [`TASK-1301`](./tickets/TASK-1301.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产级 Dockerfile 多阶段构建与 docker-compose.prod.yml | P0 | 2d | DevOps | **[TODO]** |
+| [`TASK-1302`](./tickets/TASK-1302.md) | Sprint 8 | Epic 13: 生产部署CI/CD | GitHub Actions CI/CD 流水线与固件 Release 宏编译触发 | P0 | 2.5d | DevOps/全栈 | **[TODO]** |
+| [`TASK-1303`](./tickets/TASK-1303.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产就绪健康检查探针与 Nginx 反向代理配置 | P1 | 1.5d | SRE/后端 | **[TODO]** |
+| [`TASK-1401`](./tickets/TASK-1401.md) | Sprint 8 | Epic 14: E2E 自动化 | Playwright E2E 自动化端到端测试套件 | P1 | 3d | QA/全栈 | **[TODO]** |
+| [`TASK-1402`](./tickets/TASK-1402.md) | Sprint 8 | Epic 14: E2E 自动化 | 生产环境冷启动与真实业务种子数据一键注入 | P1 | 1.5d | 数据/后端 | **[TODO]** |
 
 ---
 
@@ -112,27 +143,28 @@ kanban
 4. **交付即验收 (DoD 契约)**：
    - 运行工单中明确指明的“验证命令 (Verification Command)”；
    - 确保 `npm run build` 零 Warning 零 Error；
-   - 在工单文件中勾选对应验收条目，更新状态为 `[DONE]`。
+   - 在工单列表中更新状态为 `[DONE]`。
 
 ---
 
 ## 4. 全量里程碑交付状态：Sprint 1 ~ Sprint 5 全线竣工 (100% DONE)
 
-全部 5 个里程碑共 9 大 Epic、31 个细粒度工单已 100% 开发完成，并通过自动化端到端测试与 Golden Master 契约验证：
+全部 5 个核心里程碑共 9 大 Epic、31 个工单已 100% 开发完成，并通过自动化端到端测试与 Golden Master 契约验证：
 
-- **Milestone 1 (Sprint 1: 基础设施与数据底座)**：[`verify:m1`](file:///Users/jacko/Projects/magene-glossary/server/scripts/verify-milestone1.ts) [100% PASS]
+- **Milestone 1 (Sprint 1: 基础设施与数据底座)**：[`verify:m1`](../server/scripts/verify-milestone1.ts) [100% PASS]
   - PostgreSQL 16 + pgvector Docker 环境、Drizzle ORM 7 大核心表、无损迁移与兼容视图 `view_terms_legacy`。
-- **Milestone 2 (Sprint 2: 核心服务与双引擎)**：[`verify:m2`](file:///Users/jacko/Projects/magene-glossary/server/scripts/verify-milestone2.ts) [100% PASS]
+- **Milestone 2 (Sprint 2: 核心服务与双引擎)**：[`verify:m2`](../server/scripts/verify-milestone2.ts) [100% PASS]
   - Fastify 5.x 脚手架、TermService 防篡改加锁、Legacy API Facade 垫片、ChangeAuditService 字段级 Myers Diff、不可变快照与时光机回退、FalseDiffNormalizer 假差异清洗器、3D Diff 引擎、选择性合并与 ExcelJS 导出。
-- **Milestone 3 (Sprint 3: 直连 AI 网关与 QA 质检)**：[`verify:m3`](file:///Users/jacko/Projects/magene-glossary/server/scripts/verify-milestone3.ts) [100% PASS]
+- **Milestone 3 (Sprint 3: 直连 AI 网关与 QA 质检)**：[`verify:m3`](../server/scripts/verify-milestone3.ts) [100% PASS]
   - 多模型熔断降级 AI 网关、TM 向量/编辑距离毫秒直通检索、微批聚合与并发控制调度器、L10n QA 质检自纠错。
-- **Milestone 4 (Sprint 4: HeroUI 前端大网格与 CAT 工作台)**：[`verify:m4`](file:///Users/jacko/Projects/magene-glossary/server/scripts/verify-milestone4.ts) [100% PASS]
+- **Milestone 4 (Sprint 4: HeroUI 前端大网格与 CAT 工作台)**：[`verify:m4`](../server/scripts/verify-milestone4.ts) [100% PASS]
   - HeroUI v3 + Tailwind v4 Design Tokens 样式引擎、TanStack Query + Zustand 状态流、万级虚拟网格零重绘局部编辑、HeroUI Pro 3-Pane CAT 工作台与全键盘流、硬件 max_chars 动态仪表盘、C606 LCD/OLED 拟真点阵视窗、Git 风格红绿 Diff 抽屉与安全模态窗。
-- **Milestone 5 (Sprint 5: 研发工程闭环与上线割接)**：[`verify:m5`](file:///Users/jacko/Projects/magene-glossary/server/scripts/verify-milestone5.ts) [100% PASS]
+- **Milestone 5 (Sprint 5: 研发工程闭环与上线割接)**：[`verify:m5`](../server/scripts/verify-milestone5.ts) [100% PASS]
   - `glossa push` C 源码宏扫描、`glossa pull --format=c-header` 嵌入式 C 头文件编译 (Clang 0 Error 0 Warning 验证)、Android XML & iOS Strings 资产生成、75+ 存量 Golden Master 回归网、3 分钟灰度切流与应急回滚演练。
 
-**全量验证基线**：
+**全量测试网验证基线**：
 ```bash
 npm test # 执行 verify:all (M1 + M2 + M3 + M4 + M5)
 npx tsc --noEmit # 静态类型安全检查 (0 Errors)
+npm run build:client # 前端构建耗时 < 200ms
 ```

@@ -6,12 +6,14 @@
 
 ## 📚 核心交付文档索引
 
-| 序号 | 文档名称 | 归档路径 | 核心内容概述 |
-| :---: | :--- | :--- | :--- |
-| **01** | **产品需求规格说明书 (PRD v2.0)** | [PRODUCT_REQUIREMENTS_DOCUMENT.md](./PRODUCT_REQUIREMENTS_DOCUMENT.md) | • 业务愿景与减负原则（取消审核流与RBAC）<br/>• 用户画像与痛点矩阵（固件研发、本地化、测试）<br/>• 核心功能 1：细粒度变更审计与"后悔药"时光机<br/>• 核心功能 2：高精度版本 Diff 引擎与假差异清洗<br/>• 核心功能 3：硬件物理屏幕字长（`max_chars`）约束体系<br/>• 核心功能 4：直连多模型 AI 翻译与自动化 L10n QA 质检<br/>• 核心功能 5：TanStack 虚拟大网格与沉浸式 CAT 译员工作台<br/>• 核心功能 6：产品线与固件版本生命周期（封板镜像）<br/>• 核心功能 7：`glossa-cli` 命令行与研发工程闭环 |
-| **02** | **系统技术架构与实施规格书 (Tech Spec v2.0)** | [TECHNICAL_SPECIFICATION.md](./TECHNICAL_SPECIFICATION.md) | • Fastify 4.x + TypeScript 5.x 模块化微单体架构<br/>• PostgreSQL 16 + Drizzle ORM 精炼关系表 Schema<br/>• 兼容视图 `view_terms_legacy` 与平滑数据迁移 DDL<br/>• 核心引擎 1：假差异清洗器与三维差分算法实现<br/>• 核心引擎 2：审计日志与不可变快照时光机事务实现<br/>• 核心引擎 3：脱离 Dify 的直连 AI 网关、三级加速与 QA 引擎<br/>• 前端状态与组件：TanStack Virtual、Zustand、GlossaModal v2<br/>• 研发工具：`glossa-cli` 与嵌入式 C 头文件自动生成器<br/>• 向后兼容垫片（Legacy API Facade）保障 75+ 自动化测试<br/>• 部署架构、灰度切流与 3 分钟应急回滚 Runbook |
-| **03** | **开发任务分解与实施规格书 (Tasks Spec v2.0)** | [DEVELOPMENT_TASKS_SPECIFICATION.md](./DEVELOPMENT_TASKS_SPECIFICATION.md) | • 9 大 Epic、26 个细粒度子任务（Task 101 ~ Task 902）<br/>• 垂直切片（Vertical Slice）与任务拓扑依赖图（Mermaid）<br/>• 每个任务的输入输出、产出文件、优先级与验收标准（AC）<br/>• 5 大里程碑进度甘特图（M1 底座 ~ M5 上线）与工时排期 |
-| **04** | **前端设计规范与 HeroUI 组件规范 (design.md)** | [design.md](./design.md) | • HeroUI (v3) 核心设计哲学与 React Aria + Tailwind CSS v4 基准<br/>• OKLCH 色彩空间、迈金品牌色（迈金橙/极光青）与暗黑主题 Tokens<br/>• 万级虚拟网格、CAT工作台、版本Diff与时光机模态窗的组件映射矩阵<br/>• 硬件字长刻度条（Meter）、CAT卡片、Diff对齐等核心 UI 代码蓝图<br/>• 全键盘快捷键流（Ctrl+Enter, Alt+1/2/H/D）与 W3C A11y 规范 |
+| 序号 | 文档名称 | 归档路径 | 核心内容概述 | 状态 |
+| :---: | :--- | :--- | :--- | :---: |
+| **01** | **产品需求规格说明书 (PRD v2.0)** | [PRODUCT_REQUIREMENTS_DOCUMENT.md](./PRODUCT_REQUIREMENTS_DOCUMENT.md) | • 业务愿景与减负原则（取消审核流与RBAC）<br/>• 用户画像与痛点矩阵（固件研发、本地化、测试）<br/>• 核心功能 1：细粒度变更审计与"后悔药"时光机<br/>• 核心功能 2：高精度版本 Diff 引擎与假差异清洗<br/>• 核心功能 3：硬件物理屏幕字长（`max_chars`）约束体系<br/>• 核心功能 4：直连多模型 AI 翻译与自动化 L10n QA 质检<br/>• 核心功能 5：TanStack 虚拟大网格与沉浸式 CAT 译员工作台<br/>• 核心功能 6：产品线与固件版本生命周期（封板镜像）<br/>• 核心功能 7：`glossa-cli` 命令行与研发工程闭环 | **[已归档]** |
+| **02** | **系统技术架构与实施规格书 (Tech Spec v2.0)** | [TECHNICAL_SPECIFICATION.md](./TECHNICAL_SPECIFICATION.md) | • Fastify 5.x + TypeScript 5.x 模块化微单体架构<br/>• PostgreSQL 16 + Drizzle ORM 精炼关系表 Schema<br/>• 兼容视图 `view_terms_legacy` 与平滑数据迁移 DDL<br/>• 核心引擎 1：假差异清洗器与三维差分算法实现<br/>• 核心引擎 2：审计日志与不可变快照时光机事务实现<br/>• 核心引擎 3：脱离 Dify 的直连 AI 网关、三级加速与 QA 引擎<br/>• 前端状态与组件：TanStack Virtual、Zustand、GlossaModal v2<br/>• 研发工具：`glossa-cli` 与嵌入式 C 头文件自动生成器<br/>• 向后兼容垫片（Legacy API Facade）保障 75+ 自动化测试<br/>• 部署架构、灰度切流与 3 分钟应急回滚 Runbook | **[已归档]** |
+| **03** | **开发任务分解与实施规格书 (Tasks Spec v2.0)** | [DEVELOPMENT_TASKS_SPECIFICATION.md](./DEVELOPMENT_TASKS_SPECIFICATION.md) | • 14 大 Epic、44 个细粒度子任务（Task 101 ~ Task 1402）<br/>• 垂直切片（Vertical Slice）与任务拓扑依赖图（Mermaid）<br/>• 每个任务的输入输出、产出文件、优先级与验收标准（AC）<br/>• 8 大冲刺进度甘特图（Sprint 1 底座 ~ Sprint 8 上线）与工时排期 | **[已更新]** |
+| **04** | **前端设计规范与 HeroUI 组件规范 (design.md)** | [design.md](./design.md) | • HeroUI (v3) 核心设计哲学与 React Aria + Tailwind CSS v4 基准<br/>• OKLCH 色彩空间、迈金品牌色与浅色（纯净微灰）/深色（锌黑极光）Tokens<br/>• 万级虚拟网格、CAT工作台、版本Diff与时光机模态窗的组件映射矩阵<br/>• 硬件字长刻度条（Meter）、CAT卡片、Diff对齐等核心 UI 代码蓝图<br/>• 全键盘快捷键流（Ctrl+Enter, Alt+1/2/H/D）与 W3C A11y 规范 | **[已归档]** |
+| **05** | **敏捷工单全景总览 (TICKETS.md)** | [TICKETS.md](./TICKETS.md) | • 8 个敏捷冲刺（Sprint 1 ~ 8）全景看板<br/>• 全量 44 份工单主索引表（优先级、工时估算、依赖关系）<br/>• Sprint 1 ~ 5 (TASK-101 ~ TASK-902) 100% 绿色验收记录<br/>• Sprint 6 ~ 8 (TASK-1001 ~ TASK-1402) 后续落地实施计划 | **[最新版本]** |
+| **06** | **细粒度工单库 (tickets/ 目录)** | [tickets/](./tickets/) | 包含 `TASK-101.md` 至 `TASK-1402.md` 共 44 份工单卡片明细文件 | **[共44份]** |
 
 ---
 
@@ -32,10 +34,14 @@
 |  ------------------------------------------------------------------------------------------------- |
 |  3. 性能质变 (Performance)                                                                         |
 |     ⚡ 彻底脱离 Dify: 自建多供应商直连网关 (DeepSeek/Claude/GPT)，单条翻译从 10s 降低至 <400ms       |
-|     ⚡ 三级加速流水线: 向量 TM 本地毫秒直通 (<20ms/0成本) + 微批聚合单次往返 + 滑动窗口并发控制      |
+|     ⚡ 三级加速流水线: 向量 TM 本地毫秒直通 (<18ms/0成本) + 微批聚合单次往返 + 滑动窗口并发控制      |
 |     ⚡ 前端虚拟大网格: TanStack Virtual 支撑万级词条 60FPS 极速滚动，输入单元格原子隔离打字零重绘   |
 |  ------------------------------------------------------------------------------------------------- |
-|  4. 闭环工程交付 (GitOps)                                                                          |
+|  4. 设计美学与无障碍可读性 (Design Excellence)                                                    |
+|     🎨 HeroUI & shadcn 标准设计令牌，支持一键切换纯净浅色模式 (Light) 与锌黑极光深色模式 (Dark)      |
+|     🔍 严格达标 WCAG AA+ 字符对比度，行高宽松舒适，消除一切发灰模糊视觉缺陷                          |
+|  ------------------------------------------------------------------------------------------------- |
+|  5. 闭环工程交付 (GitOps)                                                                          |
 |     🚀 glossa-cli: C 源码静态宏自动扫描提取 (glossa push) -> 云端封板 -> 自动编译生成 C 头文件    |
 +----------------------------------------------------------------------------------------------------+
 ```
