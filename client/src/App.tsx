@@ -256,7 +256,7 @@ export const App: React.FC = () => {
         )}
 
         {currentTab === 'glossary' && (
-          <GlossaTmPage theme={theme} />
+          <GlossaryTmPage theme={theme} />
         )}
 
         {currentTab === 'projects' && (

@@ -79,6 +79,7 @@ export const CatStudioPage: React.FC<CatStudioPageProps> = ({
           onSaveTermTranslation={onSaveTermTranslation}
           onTriggerHistoryDrawer={() => catStore.setDiffDrawerOpen(true)}
           onBackToMatrix={onBackToMatrix}
+          theme={theme}
           mockTMSuggestions={[
             {
               sourceText: activeTerm?.zhCn || '心率传感器已断开',

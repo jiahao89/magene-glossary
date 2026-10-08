@@ -6,15 +6,16 @@ import {
   Lock,
   Unlock,
   Plus,
-  Download,
-  Upload,
+  FileSpreadsheet,
+  FileCode2,
   ExternalLink,
   History,
   AlertTriangle,
   CheckCircle2,
   Trash2,
-  FileCode2,
-  FileSpreadsheet
+  Check,
+  Languages,
+  SlidersHorizontal
 } from 'lucide-react';
 import { TermItem } from '../hooks/useTermsQuery';
 import { GlossaModalV2 } from '../components/common/GlossaModalV2';
@@ -44,6 +45,8 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
   onBatchAITranslate,
   theme,
 }) => {
+  const isDark = theme === 'dark';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedModule, setSelectedModule] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'todo' | 'warning' | 'locked'>('all');
@@ -193,123 +196,163 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden select-none">
-      {/* ── Top Metric Summary Cards ────────────────────────────────────────── */}
-      <div className={`p-4 border-b flex items-center justify-between gap-4 shrink-0 ${
-        theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <div className="flex items-center gap-6">
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">词条总数</div>
-            <div className="text-xl font-bold font-mono text-primary-500">{stats.total}</div>
-          </div>
-          <div className="h-7 w-px bg-slate-800/80" />
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">全语种就绪</div>
-            <div className="text-xl font-bold font-mono text-emerald-500 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{stats.translated}</span>
+      {/* ── Top Metric Summary Cards (HeroUI Pro Style) ─────────────────────── */}
+      <div
+        className={`p-4 border-b shrink-0 transition-colors duration-200 ${
+          isDark ? 'bg-slate-900/60 border-slate-800/80' : 'bg-white border-slate-200/90 shadow-xs'
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Stat Metric Group */}
+          <div className="flex items-center gap-4 md:gap-8">
+            {/* Total Terms */}
+            <div className="space-y-0.5">
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                词条总数
+              </div>
+              <div className="text-2xl font-bold font-mono tracking-tight text-primary-600 dark:text-primary-400">
+                {stats.total}
+              </div>
             </div>
-          </div>
-          <div className="h-7 w-px bg-slate-800/80" />
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">待翻译缺漏</div>
-            <div className="text-xl font-bold font-mono text-amber-500">{stats.todo}</div>
-          </div>
-          <div className="h-7 w-px bg-slate-800/80" />
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">字长超限预警</div>
-            <div className="text-xl font-bold font-mono text-rose-500 flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4" />
-              <span>{stats.warnings}</span>
-            </div>
-          </div>
-          <div className="h-7 w-px bg-slate-800/80" />
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">已锁定保护</div>
-            <div className="text-xl font-bold font-mono text-slate-400 flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5" />
-              <span>{stats.locked}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Global Action Toolbar */}
-        <div className="flex items-center gap-2">
-          {selectedTermIds.size > 0 && (
+            <div className={`h-8 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+            {/* Fully Translated */}
+            <div className="space-y-0.5">
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                全语种就绪
+              </div>
+              <div className="text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-5 h-5" />
+                <span>{stats.translated}</span>
+              </div>
+            </div>
+
+            <div className={`h-8 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+            {/* Missing Translations */}
+            <div className="space-y-0.5">
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                待翻译缺漏
+              </div>
+              <div className="text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400">
+                {stats.todo}
+              </div>
+            </div>
+
+            <div className={`h-8 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+            {/* Overlength Warnings */}
+            <div className="space-y-0.5">
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                字长截断报警
+              </div>
+              <div className="text-2xl font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                <AlertTriangle className="w-5 h-5" />
+                <span>{stats.warnings}</span>
+              </div>
+            </div>
+
+            <div className={`h-8 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+            {/* Locked Terms */}
+            <div className="space-y-0.5">
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                已封板锁定
+              </div>
+              <div className={`text-2xl font-bold font-mono tracking-tight flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <Lock className="w-4 h-4 opacity-70" />
+                <span>{stats.locked}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Toolbar */}
+          <div className="flex items-center gap-2.5">
+            {selectedTermIds.size > 0 && (
+              <button
+                onClick={handleBatchAI}
+                disabled={isBatchTranslating}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-accent-500 to-cyan-500 hover:from-accent-600 hover:to-cyan-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-accent-500/20 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>{isBatchTranslating ? '正在多模型翻译...' : `批量 AI 补翻 (${selectedTermIds.size})`}</span>
+              </button>
+            )}
+
             <button
-              onClick={handleBatchAI}
-              disabled={isBatchTranslating}
-              className="px-3.5 py-1.5 rounded-lg bg-accent-500 hover:bg-accent-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-accent-500/20 cursor-pointer disabled:opacity-50 transition-all"
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-amber-500 hover:from-primary-500 hover:to-amber-400 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-primary-500/25 active:scale-[0.98] transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{isBatchTranslating ? '正在多模型翻译...' : `批量 AI 翻译 (${selectedTermIds.size})`}</span>
+              <Plus className="w-4 h-4" />
+              <span>录入新词条</span>
             </button>
-          )}
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-primary-500/20 cursor-pointer transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>新建词条</span>
-          </button>
+            <div className={`h-6 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
 
-          <div className="h-5 w-px bg-slate-800" />
+            {/* Export Buttons */}
+            <button
+              onClick={() => alert('已调用 exceljs 导出标准原生 Excel (.xlsx) 多语言矩阵')}
+              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
+                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs'
+              }`}
+              title="导出为原生 Excel 表格"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+              <span>导出 Excel</span>
+            </button>
 
-          {/* Export Dropdown / Buttons */}
-          <button
-            onClick={() => alert('已生成并导出标准 Excel (.xlsx) 包含完整多语言矩阵')}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-              theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-            }`}
-            title="导出为原生 Excel 表格"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
-            <span>导出 Excel</span>
-          </button>
-
-          <button
-            onClick={() => alert('已调用 glossa-cli 自动编译生成固件嵌入式 C 头文件 strings_lang.h')}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-              theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-            }`}
-            title="编译生成 C 语言头文件"
-          >
-            <FileCode2 className="w-3.5 h-3.5 text-primary-500" />
-            <span>生成 C 头文件</span>
-          </button>
+            <button
+              onClick={() => alert('已通过 glossa-cli 自动编译生成固件嵌入式 C 头文件 strings_lang.h/c')}
+              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
+                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs'
+              }`}
+              title="编译生成嵌入式 C 语言头文件"
+            >
+              <FileCode2 className="w-4 h-4 text-primary-500" />
+              <span>生成 C 头文件</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Multi-Dimensional Filtering Bar ───────────────────────────────── */}
-      <div className={`px-4 py-2.5 border-b flex items-center justify-between gap-4 shrink-0 text-xs ${
-        theme === 'dark' ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
-      }`}>
-        <div className="flex items-center gap-3 flex-1 max-w-2xl">
+      {/* ── Multi-Dimensional Filtering Toolbar ────────────────────────────── */}
+      <div
+        className={`px-4 py-3 border-b flex flex-wrap items-center justify-between gap-3 shrink-0 text-xs transition-colors duration-200 ${
+          isDark ? 'bg-slate-950/70 border-slate-800/80' : 'bg-slate-50 border-slate-200/80'
+        }`}
+      >
+        <div className="flex flex-wrap items-center gap-3 flex-1">
           {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+          <div className="relative min-w-[260px] flex-1 max-w-md">
+            <Search className={`w-4 h-4 absolute left-3 top-2.5 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索 KW 宏名 (如 KW_STOP_RIDE) 或中文基准原文..."
-              className={`w-full pl-9 pr-3 py-1.5 rounded-lg border text-xs focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors ${
-                theme === 'dark'
-                  ? 'bg-slate-900 border-slate-800 text-slate-200 placeholder-slate-500'
-                  : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+              placeholder="搜索 KW 宏名 (如 KW_STOP_RIDE) 或中文原义..."
+              className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                isDark
+                  ? 'bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-primary-500'
+                  : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-primary-500 shadow-xs'
               }`}
             />
           </div>
 
-          {/* Module Filter */}
-          <div className="flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+          {/* Module Selector */}
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>所属模块:</span>
             <select
               value={selectedModule}
               onChange={(e) => setSelectedModule(e.target.value)}
-              className={`px-2.5 py-1.5 rounded-lg border text-xs focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                theme === 'dark' ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
+              className={`px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                isDark
+                  ? 'bg-slate-900 border-slate-800 text-slate-200'
+                  : 'bg-white border-slate-200 text-slate-800 shadow-xs'
               }`}
             >
               <option value="all">全部模块 (All Modules)</option>
@@ -322,21 +365,27 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
             </select>
           </div>
 
-          {/* Status Quick Filter Tabs */}
-          <div className="flex items-center bg-slate-900/60 p-0.5 rounded-lg border border-slate-800">
+          {/* Status Quick Filter Chips */}
+          <div
+            className={`flex items-center p-0.5 rounded-xl border ${
+              isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-200/80 border-slate-300/60'
+            }`}
+          >
             {[
               { id: 'all', label: '全部' },
               { id: 'todo', label: '待补全' },
-              { id: 'warning', label: '⚠️ 超长' },
+              { id: 'warning', label: '⚠️ 字符超限' },
               { id: 'locked', label: '🔒 锁定' },
             ].map((st) => (
               <button
                 key={st.id}
                 onClick={() => setSelectedStatus(st.id as any)}
-                className={`px-2 py-1 rounded-md text-[11px] transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   selectedStatus === st.id
-                    ? 'bg-primary-500 text-white font-semibold'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-primary-500 text-white shadow-xs'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {st.label}
@@ -346,124 +395,168 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
         </div>
 
         {/* Target Languages Column Switcher */}
-        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-          <span>展示语种:</span>
-          {languages.map((lang) => {
-            const isVisible = visibleLanguages.includes(lang);
-            return (
-              <button
-                key={lang}
-                onClick={() => {
-                  if (isVisible) {
-                    if (visibleLanguages.length > 1) {
-                      setVisibleLanguages(visibleLanguages.filter((l) => l !== lang));
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>展示语言列:</span>
+          <div className="flex items-center gap-1">
+            {languages.map((lang) => {
+              const isVisible = visibleLanguages.includes(lang);
+              return (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    if (isVisible) {
+                      if (visibleLanguages.length > 1) {
+                        setVisibleLanguages(visibleLanguages.filter((l) => l !== lang));
+                      }
+                    } else {
+                      setVisibleLanguages([...visibleLanguages, lang]);
                     }
-                  } else {
-                    setVisibleLanguages([...visibleLanguages, lang]);
-                  }
-                }}
-                className={`px-1.5 py-0.5 rounded font-mono font-bold uppercase transition-colors cursor-pointer ${
-                  isVisible
-                    ? 'bg-primary-500/20 text-primary-500 border border-primary-500/30'
-                    : 'bg-slate-800/40 text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {lang}
-              </button>
-            );
-          })}
+                  }}
+                  className={`px-2 py-1 rounded-lg font-mono font-bold uppercase text-[11px] transition-all cursor-pointer ${
+                    isVisible
+                      ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400 border border-primary-500/30'
+                      : isDark
+                      ? 'bg-slate-900/60 text-slate-500 hover:text-slate-300 border border-slate-800'
+                      : 'bg-white text-slate-400 hover:text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  {lang}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* ── High-Density Multi-Language Grid ──────────────────────────────── */}
+      {/* ── High-Readability Multi-Language Data Grid (HeroUI / shadcn Style) ─ */}
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-xs text-left">
+        <table className="w-full border-collapse text-left">
           {/* Table Header */}
-          <thead className={`sticky top-0 z-10 border-b select-none font-semibold ${
-            theme === 'dark' ? 'bg-slate-900 text-slate-300 border-slate-800' : 'bg-slate-100 text-slate-700 border-slate-200'
-          }`}>
-            <tr>
-              <th className="w-10 px-3 py-2.5 text-center">
+          <thead
+            className={`sticky top-0 z-10 border-b select-none font-semibold text-xs tracking-wider uppercase transition-colors duration-200 ${
+              isDark
+                ? 'bg-slate-900/95 text-slate-300 border-slate-800 backdrop-blur-md'
+                : 'bg-slate-100/95 text-slate-700 border-slate-200 backdrop-blur-md'
+            }`}
+          >
+            <tr className="h-11">
+              <th className="w-12 px-3 text-center">
                 <input
                   type="checkbox"
                   checked={filteredTerms.length > 0 && selectedTermIds.size === filteredTerms.length}
                   onChange={handleSelectAll}
-                  className="rounded border-slate-700 text-primary-500 focus:ring-0 cursor-pointer"
+                  className="rounded border-slate-400 text-primary-500 focus:ring-primary-500/30 cursor-pointer"
                 />
               </th>
-              <th className="w-12 px-2 py-2.5 text-center">状态</th>
-              <th className="w-56 px-3 py-2.5 font-mono">KW 键名</th>
-              <th className="w-64 px-3 py-2.5">中文基准原文 (zh-CN)</th>
-              <th className="w-20 px-2 py-2.5 text-center font-mono">字长约束</th>
+              <th className="w-14 px-2 text-center">状态</th>
+              <th className="w-60 px-4 font-mono">KW 键名</th>
+              <th className="w-72 px-4">中文基准原文 (zh-CN)</th>
+              <th className="w-24 px-3 text-center font-mono">字长约束</th>
               {visibleLanguages.map((lang) => (
-                <th key={lang} className="min-w-[180px] px-3 py-2.5 font-mono uppercase">
+                <th key={lang} className="min-w-[200px] px-4 font-mono">
                   {lang} 译文
                 </th>
               ))}
-              <th className="w-28 px-3 py-2.5 text-right">操作</th>
+              <th className="w-32 px-4 text-right">操作</th>
             </tr>
           </thead>
 
           {/* Table Body */}
-          <tbody className={`divide-y ${theme === 'dark' ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
+          <tbody
+            className={`divide-y transition-colors duration-200 ${
+              isDark ? 'divide-slate-800/80 bg-slate-950/40' : 'divide-slate-200/90 bg-white'
+            }`}
+          >
             {filteredTerms.map((term) => {
               const isSelected = selectedTermIds.has(term.id);
 
               return (
                 <tr
                   key={term.id}
-                  className={`transition-colors ${
+                  className={`min-h-[56px] transition-colors ${
                     isSelected
-                      ? theme === 'dark' ? 'bg-primary-950/20' : 'bg-primary-50'
-                      : theme === 'dark' ? 'hover:bg-slate-900/40' : 'hover:bg-slate-50'
+                      ? isDark
+                        ? 'bg-primary-950/25'
+                        : 'bg-primary-50/70'
+                      : isDark
+                      ? 'hover:bg-slate-900/60'
+                      : 'hover:bg-slate-50/90'
                   }`}
                 >
-                  {/* Checkbox */}
-                  <td className="px-3 py-2 text-center">
+                  {/* Row Checkbox */}
+                  <td className="px-3 py-3 text-center align-middle">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleToggleSelect(term.id)}
-                      className="rounded border-slate-700 text-primary-500 focus:ring-0 cursor-pointer"
+                      className="rounded border-slate-400 text-primary-500 focus:ring-primary-500/30 cursor-pointer"
                     />
                   </td>
 
-                  {/* Lock Status */}
-                  <td className="px-2 py-2 text-center">
+                  {/* Lock Indicator Button */}
+                  <td className="px-2 py-3 text-center align-middle">
                     <button
                       onClick={() => onToggleLock(term.id, term.isLocked)}
-                      className="text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
-                      title={term.isLocked ? '点击解锁词条' : '点击锁定词条防改'}
+                      className="p-1 rounded-lg hover:bg-slate-500/10 transition-colors cursor-pointer"
+                      title={term.isLocked ? '已锁定 (点击解锁)' : '未锁定 (点击锁定防篡改)'}
                     >
-                      {term.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-500 inline" /> : <Unlock className="w-3.5 h-3.5 opacity-30 inline hover:opacity-100" />}
+                      {term.isLocked ? (
+                        <Lock className="w-4 h-4 text-amber-500 inline" />
+                      ) : (
+                        <Unlock className="w-4 h-4 opacity-25 hover:opacity-80 inline" />
+                      )}
                     </button>
                   </td>
 
-                  {/* KW */}
-                  <td className="px-3 py-2 font-mono font-bold text-slate-200 truncate max-w-[220px]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate">{term.kw}</span>
+                  {/* KW Identifier */}
+                  <td className="px-4 py-3 align-middle">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[12px] font-bold text-primary-600 dark:text-primary-400 truncate max-w-[200px]">
+                          {term.kw}
+                        </span>
+                      </div>
                       {term.meta?.module && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-sans">
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-sans inline-block ${
+                          isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
                           {term.meta.module}
                         </span>
                       )}
                     </div>
                   </td>
 
-                  {/* Chinese Benchmark */}
-                  <td className="px-3 py-2 text-slate-300">
-                    <div className="line-clamp-2 leading-relaxed" title={term.comment || ''}>
+                  {/* Chinese Benchmark Text */}
+                  <td className="px-4 py-3 align-middle">
+                    <p
+                      className={`text-[13px] font-medium leading-relaxed ${
+                        isDark ? 'text-slate-200' : 'text-slate-800'
+                      }`}
+                      title={term.comment || ''}
+                    >
                       {term.zhCn}
-                    </div>
+                    </p>
+                    {term.comment && (
+                      <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {term.comment}
+                      </p>
+                    )}
                   </td>
 
-                  {/* Max Chars */}
-                  <td className="px-2 py-2 text-center font-mono text-[11px] text-slate-400">
-                    {term.maxChars ? `${term.maxChars} 字符` : '无限制'}
+                  {/* Max Chars Constraint Meter */}
+                  <td className="px-3 py-3 text-center align-middle font-mono text-xs">
+                    {term.maxChars ? (
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${
+                        isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}>
+                        ≤ {term.maxChars}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">无上限</span>
+                    )}
                   </td>
 
-                  {/* Dynamic Languages Cells */}
+                  {/* Dynamic Target Languages Columns */}
                   {visibleLanguages.map((lang) => {
                     const trans = term.translations[lang];
                     const text = trans?.text || '';
@@ -474,12 +567,16 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
                     return (
                       <td
                         key={lang}
-                        className={`px-3 py-1.5 relative group border-r border-slate-800/30 ${
-                          isOverflow ? 'bg-rose-950/20' : ''
+                        className={`px-4 py-2.5 align-middle border-r transition-colors ${
+                          isDark ? 'border-slate-800/40' : 'border-slate-200/50'
+                        } ${
+                          isOverflow
+                            ? isDark ? 'bg-rose-950/20' : 'bg-rose-50/60'
+                            : ''
                         }`}
                       >
                         {isCellEditing ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <input
                               autoFocus
                               type="text"
@@ -490,45 +587,58 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
                                 if (e.key === 'Enter') commitCellEdit();
                                 if (e.key === 'Escape') setEditingCell(null);
                               }}
-                              className="w-full px-2 py-1 rounded bg-slate-950 border border-primary-500 text-slate-100 text-xs focus:outline-none"
+                              className={`w-full px-3 py-1.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                                isDark
+                                  ? 'bg-slate-900 border-primary-500 text-slate-100'
+                                  : 'bg-white border-primary-500 text-slate-900 shadow-sm'
+                              }`}
                             />
-                            <span className="text-[10px] text-primary-500 font-mono">↵</span>
+                            <button
+                              onClick={commitCellEdit}
+                              className="p-1 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors cursor-pointer"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         ) : (
                           <div
                             onClick={() => !term.isLocked && startEditing(term.id, lang, text)}
-                            className={`min-h-[28px] px-2 py-1 rounded flex items-center justify-between gap-1 transition-all ${
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl flex items-center justify-between gap-2 transition-all ${
                               term.isLocked
                                 ? 'opacity-70 cursor-not-allowed'
-                                : 'cursor-text hover:bg-slate-800/50 hover:border-slate-700'
+                                : isDark
+                                ? 'cursor-pointer hover:bg-slate-800/60 hover:ring-1 hover:ring-slate-700'
+                                : 'cursor-pointer hover:bg-slate-100 hover:ring-1 hover:ring-slate-200 shadow-2xs'
                             }`}
                           >
                             <span
-                              className={`truncate leading-relaxed ${
+                              className={`text-xs leading-relaxed truncate ${
                                 isMissing
-                                  ? 'text-amber-500/70 italic text-[11px]'
+                                  ? 'text-amber-600 dark:text-amber-400 font-medium italic'
                                   : isOverflow
-                                  ? 'text-rose-400 font-medium'
-                                  : 'text-slate-200'
+                                  ? 'text-rose-600 dark:text-rose-400 font-bold'
+                                  : isDark
+                                  ? 'text-slate-200'
+                                  : 'text-slate-800'
                               }`}
                             >
                               {isMissing ? '+ 点击录入翻译' : text}
                             </span>
 
-                            {/* Tags / Badges */}
+                            {/* Source & Overflow Tags */}
                             <div className="flex items-center gap-1 shrink-0">
                               {trans?.source === 'ai' && (
-                                <span className="text-[9px] px-1 rounded bg-accent-500/20 text-accent-400 font-mono" title="AI 生成">
+                                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-accent-500/15 text-accent-600 dark:text-accent-400 font-mono font-bold border border-accent-500/30" title="直连 AI 翻译">
                                   AI
                                 </span>
                               )}
                               {trans?.source === 'tm' && (
-                                <span className="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-400 font-mono" title="TM 记忆库 100% 命中">
+                                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono font-bold border border-emerald-500/30" title="TM 记忆库 100% 命中">
                                   TM
                                 </span>
                               )}
                               {isOverflow && (
-                                <span className="text-[9px] px-1 rounded bg-rose-500/30 text-rose-300 font-mono" title={`超限 ${text.length - (term.maxChars || 0)} 字符`}>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-rose-500/20 text-rose-600 dark:text-rose-400 font-mono font-bold border border-rose-500/40" title={`已超出设计上限 ${text.length - (term.maxChars || 0)} 字符`}>
                                   +{text.length - (term.maxChars || 0)}
                                 </span>
                               )}
@@ -540,12 +650,12 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
                   })}
 
                   {/* Actions Column */}
-                  <td className="px-3 py-2 text-right">
+                  <td className="px-4 py-3 text-right align-middle">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => onOpenCatStudio(term.id)}
-                        className="px-2 py-1 rounded bg-slate-800 hover:bg-primary-600 hover:text-white text-slate-300 text-[11px] font-medium transition-colors flex items-center gap-1 cursor-pointer"
-                        title="在沉浸式 CAT 译员工作台翻译此词条"
+                        className="px-2.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold shadow-xs shadow-primary-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                        title="在沉浸式 CAT 译员工作台专注翻译"
                       >
                         <ExternalLink className="w-3 h-3" />
                         <span>CAT</span>
@@ -553,18 +663,22 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
 
                       <button
                         onClick={() => onOpenHistory(term.id)}
-                        className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-                        title="查看字段级变更历史与时光机"
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                        }`}
+                        title="查看变更审计与时光机"
                       >
-                        <History className="w-3.5 h-3.5" />
+                        <History className="w-4 h-4" />
                       </button>
 
                       <button
                         onClick={() => onDeleteTerm(term.id)}
-                        className="p-1 rounded hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          isDark ? 'hover:bg-rose-950/40 text-slate-500 hover:text-rose-400' : 'hover:bg-rose-50 text-slate-400 hover:text-rose-600'
+                        }`}
                         title="删除词条"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -575,49 +689,57 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
         </table>
       </div>
 
-      {/* ── New Term Modal ────────────────────────────────────────────────── */}
+      {/* ── New Term Modal (GlossaModalV2) ─────────────────────────────────── */}
       <GlossaModalV2
         isOpen={isAddModalOpen}
-        title="录入新词条 (New Term)"
+        title="录入新词条 (New Term Registration)"
         description="向当前固件版本注册新的多语言词条键名与中文基准原文"
         confirmLabel="确认录入并加入词库"
         onConfirm={handleCreateTermSubmit}
         onCancel={() => setIsAddModalOpen(false)}
       >
-        <div className="space-y-3.5 text-xs">
+        <div className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">
-              KW 键名 (Macro Identifier) <span className="text-rose-500">*</span>
+            <label className={`block font-semibold mb-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+              KW 宏键名 (Macro Identifier) <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={newKw}
               onChange={(e) => setNewKw(e.target.value)}
               placeholder="例如: KW_PEDAL_CALIBRATION_READY"
-              className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-primary-500"
+              className={`w-full px-3 py-2 rounded-xl border font-mono focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">
+            <label className={`block font-semibold mb-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
               中文基准原文 (zh-CN) <span className="text-rose-500">*</span>
             </label>
             <textarea
               rows={2}
               value={newZhCn}
               onChange={(e) => setNewZhCn(e.target.value)}
-              placeholder="录入中文原文..."
-              className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none"
+              placeholder="输入中文原文..."
+              className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary-500/40 resize-none ${
+                isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+              }`}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">所属功能模块</label>
+              <label className={`block font-semibold mb-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                所属功能模块
+              </label>
               <select
                 value={newModule}
                 onChange={(e) => setNewModule(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none"
+                className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                  isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-800 shadow-xs'
+                }`}
               >
                 <option value="activity">骑行运动 (Activity)</option>
                 <option value="sensor">传感器 (Sensor)</option>
@@ -629,7 +751,7 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
+              <label className={`block font-semibold mb-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                 屏幕字长限制 (Max Chars)
               </label>
               <input
@@ -637,19 +759,25 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
                 value={newMaxChars}
                 onChange={(e) => setNewMaxChars(Number(e.target.value))}
                 placeholder="24"
-                className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-mono focus:outline-none"
+                className={`w-full px-3 py-2 rounded-xl border font-mono focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                  isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+                }`}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">研发排版注释 / 备注</label>
+            <label className={`block font-semibold mb-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+              排版注释说明
+            </label>
             <input
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="例如: 屏幕底部单行展示，超过24字符发生物理硬件截断"
-              className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none"
+              placeholder="例如: 显示于码表主屏幕底部状态栏"
+              className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary-500/40 ${
+                isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+              }`}
             />
           </div>
         </div>
