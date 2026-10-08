@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  glossa-db:
+    image: pgvector/pgvector:pg16
+    container_name: glossa-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-glossa_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-glossa_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-glossa_hub_prod}
+    ports:
+      - "5432:5432"
+    volumes:
+      - glossa_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glossa_admin} -d ${POSTGRES_DB:-glossa_hub_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  glossa-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glossa-app-prod
+    restart: always
+    depends_on:
+      glossa-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-glossa_admin}:${POSTGRES_PASSWORD:-glossa_secure_pass_2026}@glossa-db:5432/${POSTGRES_DB:-glossa_hub_prod}
+    ports:
+      - "3000:3000"
+
+volumes:
+  glossa_pgdata_prod:
+    driver: local

@@ -18,10 +18,14 @@ import {
 } from './data/mock-data';
 import { useCatStudioStore } from './stores/cat-studio.store';
 
+import { useUserPreferencesStore } from './stores/user-preferences.store';
+
 const DEFAULT_LANGUAGES = ['en', 'de', 'fr', 'es', 'it', 'ja', 'ko', 'ru'];
 
 export const App: React.FC = () => {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const preferences = useUserPreferencesStore();
+  const theme = preferences.theme;
+  const toggleTheme = preferences.toggleTheme;
   const [currentTab, setCurrentTab] = useState<NavigationTab>('terms');
 
   // Projects & Versions State
@@ -35,11 +39,16 @@ export const App: React.FC = () => {
 
   const catStore = useCatStudioStore();
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    document.documentElement.classList.remove('dark', 'light');
-    document.documentElement.classList.add(nextTheme);
+  const handleBatchImport = (added: TermItem[], updated: TermItem[]) => {
+    setTerms((prev) => {
+      const updatedIds = new Set(updated.map((u) => u.id));
+      const merged = prev.map((t) => {
+        const match = updated.find((u) => u.id === t.id);
+        return match || t;
+      });
+      return [...added, ...merged];
+    });
+    alert(`成功完成增量导入！新增 ${added.length} 条，更新 ${updated.length} 条。系统已自动生成版本对比与快照记录。`);
   };
 
   // Term Operations
@@ -227,6 +236,7 @@ export const App: React.FC = () => {
             onAddTerm={handleAddTerm}
             onDeleteTerm={handleDeleteTerm}
             onBatchAITranslate={handleBatchAITranslate}
+            onBatchImport={handleBatchImport}
             theme={theme}
           />
         )}

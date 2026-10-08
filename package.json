@@ -15,7 +15,8 @@
     "dev:server": "tsx server/src/server.ts",
     "build:client": "vite build",
     "build": "tsc",
-    "glossa": "tsx cli/bin/glossa.ts"
+    "glossa": "tsx cli/bin/glossa.ts",
+    "db:seed": "tsx server/scripts/seed-production-data.ts"
   },
   "bin": {
     "glossa": "./cli/bin/glossa.ts"

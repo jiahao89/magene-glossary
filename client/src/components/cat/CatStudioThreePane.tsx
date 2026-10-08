@@ -9,13 +9,15 @@ import {
   Check,
   Languages,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  Smartphone
 } from 'lucide-react';
 import { TermItem } from '../../hooks/useTermsQuery';
 import { useCatStudioStore } from '../../stores/cat-studio.store';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { HardwareConstraintMeter } from '../ui/HardwareConstraintMeter';
 import { TMSuggestion, AICandidate } from './AICopilotDock';
+import { HardwareHotspotViewer } from './HardwareHotspotViewer';
 
 export interface CatStudioThreePaneProps {
   terms: TermItem[];
@@ -47,6 +49,7 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [copiedZh, setCopiedZh] = useState(false);
+  const [showScreenEmulator, setShowScreenEmulator] = useState(false);
 
   // Active term
   const activeTerm =
@@ -281,6 +284,21 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
 
               <div className="flex items-center gap-2.5">
                 <button
+                  onClick={() => setShowScreenEmulator(!showScreenEmulator)}
+                  className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    showScreenEmulator
+                      ? 'bg-primary-500 text-white border-primary-500 shadow-xs'
+                      : isDark
+                      ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
+                      : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs'
+                  }`}
+                  title="展开/收起硬件屏幕 SVG 热区拟真视窗"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>{showScreenEmulator ? '收起真机视窗' : '真机热区视窗'}</span>
+                </button>
+
+                <button
                   onClick={onTriggerHistoryDrawer}
                   className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isDark
@@ -301,6 +319,19 @@ export const CatStudioThreePane: React.FC<CatStudioThreePaneProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Hardware Screen Hotspot Viewer (TASK-1101) */}
+            {showScreenEmulator && (
+              <HardwareHotspotViewer
+                activeKw={activeTerm.kw}
+                activeTranslationText={editText}
+                theme={theme}
+                onSelectKw={(kw) => {
+                  const target = terms.find((t) => t.kw === kw);
+                  if (target) store.setActiveTerm(target.id, target.kw);
+                }}
+              />
+            )}
 
             {/* Chinese Benchmark Card */}
             <div

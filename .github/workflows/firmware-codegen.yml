@@ -1,0 +1,43 @@
+name: Firmware C Header Codegen & Asset Export
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Firmware Version Tag (e.g. v2.0.0)'
+        required: true
+        default: 'v2.0.0'
+
+jobs:
+  codegen:
+    name: Compile Strings to Embedded C Headers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile C Headers & Android/iOS Strings
+        run: |
+          mkdir -p output/c output/android output/ios
+          npx glossa pull --format=c-header --out=./output/c
+          npx glossa pull --format=android-xml --out=./output/android
+          npx glossa pull --format=ios-strings --out=./output/ios
+
+      - name: Upload Codegen Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-strings-release
+          path: output/

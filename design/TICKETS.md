@@ -56,22 +56,22 @@ kanban
     [✔] TASK-803: 移动端 XML 与 Strings 资产输出
     [✔] TASK-901: 75+ 存量 Golden Master 回归
     [✔] TASK-902: 灰度切流与 3 分钟应急回滚演练
-  Sprint 6 [M6: 前后端全量联调与持久化 - TODO]
-    [ ] TASK-1001: TanStack Query 全量对接 Fastify API
-    [ ] TASK-1002: 单元格防抖乐观更新与审计联动
-    [ ] TASK-1003: 拖拽导入 Excel/CSV 与 Diff 预检
-    [ ] TASK-1004: 主题与多语言视图偏好持久化
-  Sprint 7 [M7: 硬件真机热区与约束增强 - TODO]
-    [ ] TASK-1101: 硬件截图热区联动标注与 SVG 映射
-    [ ] TASK-1102: 固件点阵字体像素级字宽估算引擎
-    [ ] TASK-1201: 轻量企业身份鉴权与操作人注入
-    [ ] TASK-1202: 接口请求频次限制与 AI 防刷守卫
-  Sprint 8 [M8: 生产部署与工程化落地 - TODO]
-    [ ] TASK-1301: 生产级 Dockerfile 多阶段构建
-    [ ] TASK-1302: GitHub Actions CI/CD 与宏编译
-    [ ] TASK-1303: 生产就绪健康检查探针与 Nginx
-    [ ] TASK-1401: Playwright E2E 自动化端到端测试
-    [ ] TASK-1402: 生产环境冷启动与真实种子数据注入
+  Sprint 6 [M6: 前后端全量联调与持久化 - 100% DONE]
+    [✔] TASK-1001: TanStack Query 全量对接 Fastify API
+    [✔] TASK-1002: 单元格防抖乐观更新与审计联动
+    [✔] TASK-1003: 拖拽导入 Excel/CSV 与 Diff 预检
+    [✔] TASK-1004: 主题与多语言视图偏好持久化
+  Sprint 7 [M7: 硬件真机热区与约束增强 - 100% DONE]
+    [✔] TASK-1101: 硬件截图热区联动标注与 SVG 映射
+    [✔] TASK-1102: 固件点阵字体像素级字宽估算引擎
+    [✔] TASK-1201: 轻量企业身份鉴权与操作人注入
+    [✔] TASK-1202: 接口请求频次限制与 AI 防刷守卫
+  Sprint 8 [M8: 生产部署与工程化落地 - 100% DONE]
+    [✔] TASK-1301: 生产级 Dockerfile 多阶段构建
+    [✔] TASK-1302: GitHub Actions CI/CD 与宏编译
+    [✔] TASK-1303: 生产就绪健康检查探针与 Nginx
+    [✔] TASK-1401: Playwright E2E 自动化端到端测试
+    [✔] TASK-1402: 生产环境冷启动与真实种子数据注入
 ```
 
 ---
@@ -111,19 +111,19 @@ kanban
 | [`TASK-803`](./tickets/TASK-803.md) | Sprint 5 | Epic 8: 研发工具 | 移动端多语言资产编译输出 (Android XML & iOS Strings) | P1 | 2d | 移动端/全栈 | **[DONE]** |
 | [`TASK-901`](./tickets/TASK-901.md) | Sprint 5 | Epic 9: 测试切流 | 75+ 存量 Golden Master 回归契约测试网 | P0 | 3d | QA/测试 | **[DONE]** |
 | [`TASK-902`](./tickets/TASK-902.md) | Sprint 5 | Epic 9: 测试切流 | 灰度切流演练与 3 分钟应急回滚预案实操验证 | P0 | 2d | DevOps/SRE | **[DONE]** |
-| [`TASK-1001`](./tickets/TASK-1001.md) | Sprint 6 | Epic 10: 联调持久化 | 前端 TanStack Query 全量对接 Fastify 后端 REST API | P0 | 3d | 前端/全栈 | **[TODO]** |
-| [`TASK-1002`](./tickets/TASK-1002.md) | Sprint 6 | Epic 10: 联调持久化 | 单元格内联编辑防抖、乐观更新与实时审计联动 | P0 | 2d | 前端 | **[TODO]** |
-| [`TASK-1003`](./tickets/TASK-1003.md) | Sprint 6 | Epic 10: 联调持久化 | 批量导入导出交互：拖拽上传 Excel/CSV 与 Diff 预检 | P1 | 3d | 前端/全栈 | **[TODO]** |
-| [`TASK-1004`](./tickets/TASK-1004.md) | Sprint 6 | Epic 10: 联调持久化 | 用户界面个性化偏好持久化：浅色/深色模式与展示列恢复 | P2 | 1d | 前端 | **[TODO]** |
-| [`TASK-1101`](./tickets/TASK-1101.md) | Sprint 7 | Epic 11: 硬件约束增强 | 硬件真机截图热区联动标注与 SVG 归一化矩形映射 | P1 | 3d | 前端/UI | **[TODO]** |
-| [`TASK-1102`](./tickets/TASK-1102.md) | Sprint 7 | Epic 11: 硬件约束增强 | 固件嵌入式点阵字体像素级物理字宽估算引擎 | P2 | 2d | 算法/前端 | **[TODO]** |
-| [`TASK-1201`](./tickets/TASK-1201.md) | Sprint 7 | Epic 12: 企业内网安全 | 轻量级企业身份鉴权与操作人上下文自动注入 | P1 | 2d | 后端 | **[TODO]** |
-| [`TASK-1202`](./tickets/TASK-1202.md) | Sprint 7 | Epic 12: 企业内网安全 | 接口请求频次限制与 AI 外部网关防刷保护 | P2 | 1.5d | 后端/DevOps | **[TODO]** |
-| [`TASK-1301`](./tickets/TASK-1301.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产级 Dockerfile 多阶段构建与 docker-compose.prod.yml | P0 | 2d | DevOps | **[TODO]** |
-| [`TASK-1302`](./tickets/TASK-1302.md) | Sprint 8 | Epic 13: 生产部署CI/CD | GitHub Actions CI/CD 流水线与固件 Release 宏编译触发 | P0 | 2.5d | DevOps/全栈 | **[TODO]** |
-| [`TASK-1303`](./tickets/TASK-1303.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产就绪健康检查探针与 Nginx 反向代理配置 | P1 | 1.5d | SRE/后端 | **[TODO]** |
-| [`TASK-1401`](./tickets/TASK-1401.md) | Sprint 8 | Epic 14: E2E 自动化 | Playwright E2E 自动化端到端测试套件 | P1 | 3d | QA/全栈 | **[TODO]** |
-| [`TASK-1402`](./tickets/TASK-1402.md) | Sprint 8 | Epic 14: E2E 自动化 | 生产环境冷启动与真实业务种子数据一键注入 | P1 | 1.5d | 数据/后端 | **[TODO]** |
+| [`TASK-1001`](./tickets/TASK-1001.md) | Sprint 6 | Epic 10: 联调持久化 | 前端 TanStack Query 全量对接 Fastify 后端 REST API | P0 | 3d | 前端/全栈 | **[DONE]** |
+| [`TASK-1002`](./tickets/TASK-1002.md) | Sprint 6 | Epic 10: 联调持久化 | 单元格内联编辑防抖、乐观更新与实时审计联动 | P0 | 2d | 前端 | **[DONE]** |
+| [`TASK-1003`](./tickets/TASK-1003.md) | Sprint 6 | Epic 10: 联调持久化 | 批量导入导出交互：拖拽上传 Excel/CSV 与 Diff 预检 | P1 | 3d | 前端/全栈 | **[DONE]** |
+| [`TASK-1004`](./tickets/TASK-1004.md) | Sprint 6 | Epic 10: 联调持久化 | 用户界面个性化偏好持久化：浅色/深色模式与展示列恢复 | P2 | 1d | 前端 | **[DONE]** |
+| [`TASK-1101`](./tickets/TASK-1101.md) | Sprint 7 | Epic 11: 硬件约束增强 | 硬件真机截图热区联动标注与 SVG 归一化矩形映射 | P1 | 3d | 前端/UI | **[DONE]** |
+| [`TASK-1102`](./tickets/TASK-1102.md) | Sprint 7 | Epic 11: 硬件约束增强 | 固件嵌入式点阵字体像素级物理字宽估算引擎 | P2 | 2d | 算法/前端 | **[DONE]** |
+| [`TASK-1201`](./tickets/TASK-1201.md) | Sprint 7 | Epic 12: 企业内网安全 | 轻量级企业身份鉴权与操作人上下文自动注入 | P1 | 2d | 后端 | **[DONE]** |
+| [`TASK-1202`](./tickets/TASK-1202.md) | Sprint 7 | Epic 12: 企业内网安全 | 接口请求频次限制与 AI 外部网关防刷保护 | P2 | 1.5d | 后端/DevOps | **[DONE]** |
+| [`TASK-1301`](./tickets/TASK-1301.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产级 Dockerfile 多阶段构建与 docker-compose.prod.yml | P0 | 2d | DevOps | **[DONE]** |
+| [`TASK-1302`](./tickets/TASK-1302.md) | Sprint 8 | Epic 13: 生产部署CI/CD | GitHub Actions CI/CD 流水线与固件 Release 宏编译触发 | P0 | 2.5d | DevOps/全栈 | **[DONE]** |
+| [`TASK-1303`](./tickets/TASK-1303.md) | Sprint 8 | Epic 13: 生产部署CI/CD | 生产就绪健康检查探针与 Nginx 反向代理配置 | P1 | 1.5d | SRE/后端 | **[DONE]** |
+| [`TASK-1401`](./tickets/TASK-1401.md) | Sprint 8 | Epic 14: E2E 自动化 | Playwright E2E 自动化端到端测试套件 | P1 | 3d | QA/全栈 | **[DONE]** |
+| [`TASK-1402`](./tickets/TASK-1402.md) | Sprint 8 | Epic 14: E2E 自动化 | 生产环境冷启动与真实业务种子数据一键注入 | P1 | 1.5d | 数据/后端 | **[DONE]** |
 
 ---
 

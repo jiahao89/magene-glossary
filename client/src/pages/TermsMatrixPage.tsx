@@ -15,10 +15,12 @@ import {
   Trash2,
   Check,
   Languages,
-  SlidersHorizontal
+  SlidersHorizontal,
+  UploadCloud
 } from 'lucide-react';
 import { TermItem } from '../hooks/useTermsQuery';
 import { GlossaModalV2 } from '../components/common/GlossaModalV2';
+import { ImportExcelModal } from '../components/modals/ImportExcelModal';
 
 export interface TermsMatrixPageProps {
   terms: TermItem[];
@@ -30,6 +32,7 @@ export interface TermsMatrixPageProps {
   onAddTerm: (term: Partial<TermItem>) => void;
   onDeleteTerm: (termId: string) => void;
   onBatchAITranslate: (termIds: string[]) => Promise<void>;
+  onBatchImport?: (added: TermItem[], updated: TermItem[]) => void;
   theme: 'dark' | 'light';
 }
 
@@ -43,6 +46,7 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
   onAddTerm,
   onDeleteTerm,
   onBatchAITranslate,
+  onBatchImport,
   theme,
 }) => {
   const isDark = theme === 'dark';
@@ -60,6 +64,7 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
 
   // New Term Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [newKw, setNewKw] = useState('');
   const [newZhCn, setNewZhCn] = useState('');
   const [newModule, setNewModule] = useState('activity');
@@ -290,7 +295,20 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
 
             <div className={`h-6 w-px ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
 
-            {/* Export Buttons */}
+            {/* Import / Export Buttons */}
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200'
+                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs'
+              }`}
+              title="拖拽导入外翻 Excel / CSV 并执行 Diff 预检"
+            >
+              <UploadCloud className="w-4 h-4 text-primary-500" />
+              <span>导入表格</span>
+            </button>
+
             <button
               onClick={() => alert('已调用 exceljs 导出标准原生 Excel (.xlsx) 多语言矩阵')}
               className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -782,6 +800,21 @@ export const TermsMatrixPage: React.FC<TermsMatrixPageProps> = ({
           </div>
         </div>
       </GlossaModalV2>
+
+      {/* ── Import Excel / CSV Modal (TASK-1003) ────────────────────────── */}
+      <ImportExcelModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        existingTerms={terms}
+        theme={theme}
+        onConfirmImport={(added, updated) => {
+          if (onBatchImport) {
+            onBatchImport(added, updated);
+          } else {
+            alert(`成功导入入库！新增 ${added.length} 条，更新 ${updated.length} 条。`);
+          }
+        }}
+      />
     </div>
   );
 };
