@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../utils/api';
-import { Trash2, RotateCcw, AlertCircle, Loader2, Rocket, Sparkles, Globe, Cpu, Check, Key } from 'lucide-react';
+import { Trash2, RotateCcw, AlertCircle, Loader2, Sparkles, Globe, Cpu, Check } from 'lucide-react';
 import { useToast } from './Toast';
 import { formatLocaleDateTime } from '../utils/dateTime';
 
@@ -26,7 +26,7 @@ export default function SettingsTab({
   const [difyUrl, setDifyUrl] = useState('https://api.dify.ai/v1');
   const [difyKey, setDifyKey] = useState('');
   const [hasDifyKey, setHasDifyKey] = useState(false);
-  const [difyPreset, setDifyPreset] = useState('dify_cloud');
+  const [_difyPreset, setDifyPreset] = useState('dify_cloud');
 
   // Operation states
   const [testing, setTesting] = useState(false);

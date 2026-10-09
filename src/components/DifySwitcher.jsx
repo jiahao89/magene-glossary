@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Globe, ChevronDown, Check, Loader2, Lock, Sparkles, Cpu, Settings } from 'lucide-react';
-import { BUILTIN_DIFY_PRESETS, getDifyDisplayLabel, matchBuiltinPreset } from '../utils/difyLabels';
+import { Globe, ChevronDown, Check, Loader2, Sparkles, Cpu, Settings } from 'lucide-react';
+import { getDifyDisplayLabel } from '../utils/difyLabels';
 import { apiFetch } from '../utils/api';
 
 // ============================================================
@@ -17,7 +17,7 @@ export default function DifySwitcher({
   connected,
   canSwitch,         // 当前用户是否有 owner 权限切换
   switching,         // 上层传入的"切换进行中"标志
-  onSwitch,          // (newBaseUrl: string) => Promise<boolean>
+  _onSwitch,         // (newBaseUrl: string) => Promise<boolean>
   onOpenSettings,    // () => void (打开设置页)
   aiConfig,          // { provider, openaiModel, openaiBaseUrl, hasOpenaiKey, difyBaseUrl, hasDifyKey }
   onRefreshAiState   // 刷新全局状态回调
@@ -40,8 +40,6 @@ export default function DifySwitcher({
   }, [open]);
 
   const activeProvider = aiConfig?.provider || (baseUrl ? 'dify' : 'openai');
-  const activePresetId = matchBuiltinPreset(baseUrl || aiConfig?.difyBaseUrl);
-  const isCustomDify = !activePresetId && !!(baseUrl || aiConfig?.difyBaseUrl);
   const difyDisplayLabel = connected ? getDifyDisplayLabel(baseUrl || aiConfig?.difyBaseUrl) : '未配置';
 
   // 快捷切换 AI Provider
