@@ -439,10 +439,136 @@ async function generateKw({ projectId, text, enText = '', context = '' }) {
   return formatKw(trimmedText);
 }
 
+/**
+ * 测试 AI 服务连通性 (Direct OpenAI/DeepSeek 或 Dify)
+ */
+async function testAiConnectivity(options = {}) {
+  const { projectId, provider: overrideProvider, openaiBaseUrl, openaiApiKey, openaiModel, difyBaseUrl, difyApiKey } = options;
+  const effectiveConfig = await getEffectiveAiConfig(projectId);
+
+  const provider = overrideProvider || effectiveConfig.provider;
+  const startTime = Date.now();
+
+  if (provider === 'openai') {
+    const baseUrl = (openaiBaseUrl !== undefined ? openaiBaseUrl : (effectiveConfig.openai.baseUrl || 'https://api.deepseek.com/v1')).replace(/\/$/, '');
+    const apiKey = openaiApiKey !== undefined ? openaiApiKey : effectiveConfig.openai.apiKey;
+    const model = openaiModel || effectiveConfig.openai.model || 'deepseek-chat';
+
+    if (!apiKey) {
+      return {
+        success: false,
+        provider: 'openai',
+        error: '未配置 API Key，请在项目设置或环境变量中填写 API Key'
+      };
+    }
+
+    try {
+      const probeRes = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        signal: AbortSignal.timeout(10000),
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: 'Ping test. Reply with PONG.' }],
+          max_tokens: 10,
+          temperature: 0.1
+        })
+      });
+
+      const latencyMs = Date.now() - startTime;
+      if (!probeRes.ok) {
+        const errorText = await probeRes.text();
+        return {
+          success: false,
+          provider: 'openai',
+          status: probeRes.status,
+          latencyMs,
+          error: `API 响应错误 (${probeRes.status}): ${errorText.slice(0, 300)}`
+        };
+      }
+
+      const data = await probeRes.json();
+      const reply = data.choices?.[0]?.message?.content?.trim() || '';
+
+      return {
+        success: true,
+        provider: 'openai',
+        model,
+        latencyMs,
+        reply
+      };
+    } catch (err) {
+      return {
+        success: false,
+        provider: 'openai',
+        error: err.name === 'TimeoutError' ? 'AI 请求连接超时 (10s)' : `网络请求失败: ${err.message}`,
+        latencyMs: Date.now() - startTime
+      };
+    }
+  } else if (provider === 'dify') {
+    const baseUrl = (difyBaseUrl !== undefined ? difyBaseUrl : (effectiveConfig.dify.baseUrl || 'https://api.dify.ai/v1')).replace(/\/$/, '');
+    const apiKey = difyApiKey !== undefined ? difyApiKey : effectiveConfig.dify.apiKey;
+
+    if (!apiKey) {
+      return {
+        success: false,
+        provider: 'dify',
+        error: '未配置 Dify API Key'
+      };
+    }
+
+    try {
+      const probeRes = await fetch(`${baseUrl}/parameters`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        },
+        signal: AbortSignal.timeout(8000)
+      });
+
+      const latencyMs = Date.now() - startTime;
+      if (!probeRes.ok) {
+        return {
+          success: false,
+          provider: 'dify',
+          status: probeRes.status,
+          latencyMs,
+          error: `Dify 接口响应异常 (${probeRes.status})`
+        };
+      }
+
+      return {
+        success: true,
+        provider: 'dify',
+        latencyMs,
+        message: 'Dify API 连接正常'
+      };
+    } catch (err) {
+      return {
+        success: false,
+        provider: 'dify',
+        error: `Dify 连接失败: ${err.message}`,
+        latencyMs: Date.now() - startTime
+      };
+    }
+  } else {
+    return {
+      success: true,
+      provider: 'local',
+      latencyMs: 1,
+      message: '本地固件词典与规则引擎已就绪 (离线模式)'
+    };
+  }
+}
+
 module.exports = {
   FIRMWARE_UI_DICT,
   formatKw,
   getEffectiveAiConfig,
   translateTerm,
-  generateKw
+  generateKw,
+  testAiConnectivity
 };

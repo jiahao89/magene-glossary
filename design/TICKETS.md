@@ -10,6 +10,17 @@
 > - [前端设计规范与 HeroUI 架构标准 (design.md)](./design.md)
 > - [开发任务分解总览 (DEVELOPMENT_TASKS_SPECIFICATION.md)](./DEVELOPMENT_TASKS_SPECIFICATION.md)
 
+> **架构校准声明 (2026-10-09)**：
+> 早期规划中曾探索过将后端重构为 Fastify / Drizzle ORM 以及将前端改为 3-Pane CAT 工作台的实验性分支 (`TASK-101` ~ `TASK-1402`)。
+> 经业务评审与实际需求对齐，该探索方案背离了团队最核心的“高密度矩阵数据大表 (Airtable/Bitable 体验)”与“妙搭平台 PostgreSQL 一键直连部署”的核心定位。
+> **当前唯一有效、正在执行的企业级敏捷工单清单已迁移至标准跟踪目录**：[`.scratch/tickets/`](../.scratch/tickets/)
+> - `001-backend-ai-service-decoupling.md` [DONE]
+> - `002-repository-data-layer.md` [DONE]
+> - `003-frontend-hooks-refactoring.md` [DONE]
+> - `004-excel-and-batch-services.md` [DONE]
+> - `005-ai-direct-engine-and-miaoda-pg.md` [DONE]
+> 下文收录的 `TASK-101` ~ `TASK-1402` 仅作为研发原型归档，不再作为交付依赖。
+
 ---
 
 ## 1. 敏捷开发冲刺总览与看板 (Agile Sprint Board & Burndown)

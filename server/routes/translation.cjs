@@ -11,10 +11,9 @@ const {
   getBuiltinDifyApps,
   resolveBuiltinKey,
   getOutboundIp,
-  executeDifyWithFailover,
   BROWSER_USER_AGENT
 } = require('../services/difyService.cjs');
-const { getEffectiveAiConfig, translateTerm, generateKw } = require('../services/aiTranslationService.cjs');
+const { getEffectiveAiConfig, translateTerm, generateKw, testAiConnectivity } = require('../services/aiTranslationService.cjs');
 const { parseJsonField } = require('../utils/jsonFields.cjs');
 const { getCachedGlossaryTerms } = require('../services/glossaryCache.cjs');
 const { tryExtractAndParseJson, isTranslationObj } = require('../utils/jsonRepair.cjs');
@@ -175,6 +174,28 @@ router.post('/projects/:projectId/ai-config', authenticateToken, requireProjectM
   } catch (err) {
     console.error('保存 AI 配置失败:', err);
     res.status(500).json({ error: '保存 AI 配置失败: ' + err.message });
+  }
+});
+
+// POST /api/projects/:projectId/ai-test - 测试 AI 连通性 (Direct OpenAI / DeepSeek / Dify / Local)
+router.post('/projects/:projectId/ai-test', authenticateToken, requireProjectMember, async (req, res) => {
+  const { projectId } = req.params;
+  const { provider, openaiBaseUrl, openaiApiKey, openaiModel, difyBaseUrl, difyApiKey } = req.body || {};
+
+  try {
+    const result = await testAiConnectivity({
+      projectId,
+      provider,
+      openaiBaseUrl,
+      openaiApiKey,
+      openaiModel,
+      difyBaseUrl,
+      difyApiKey
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('测试 AI 连通性失败:', err);
+    res.status(500).json({ error: '测试失败: ' + err.message });
   }
 });
 
