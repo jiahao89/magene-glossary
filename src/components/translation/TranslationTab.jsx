@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { apiFetch, safeGetLocalStorage } from '../../utils/api';
 import { findTranslationForLang, DEFAULT_TARGET_LANGUAGES } from '../../utils/languageHelper';
 import { downloadBlob, buildExportFilename } from '../../utils/download.js';
 import { useToast } from '../Toast';
+import { useTermsManager } from '../../hooks/useTermsManager';
+import { useOptimisticTerm } from '../../hooks/useOptimisticTerm';
 import { BatchCategoryModal, BatchCopyModal, BatchApproveModal } from './BatchActionsModal';
 import BatchTranslateModal from './BatchTranslateModal';
 import TranslationToolbar from './TranslationToolbar';
@@ -25,7 +27,6 @@ export default function TranslationTab({
   const toast = useToast();
 
   const [targetLanguagesList, setTargetLanguagesList] = useState(DEFAULT_TARGET_LANGUAGES);
-  // TARGET_LANGUAGES 别名：组件内多处沿用该命名，统一指向异步加载后的语种列表
   const TARGET_LANGUAGES = targetLanguagesList;
   const [difyConfigured, setDifyConfigured] = useState(false);
 
@@ -77,44 +78,70 @@ export default function TranslationTab({
     }
   }, [propSetSelectedTableId]);
 
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // 单元格高亮（修改/新增标记）状态 — 已从 App.jsx 下沉到唯一消费者 TranslationTab
-  const [modifiedCells, setModifiedCells] = useState(() => {
-    return safeGetLocalStorage('glossahub_modified_cells', {});
+  // Hook 1: 核心词条状态管理 (分页、多维检索、列排序、行列选择)
+  const {
+    records,
+    setRecords,
+    totalRecords,
+    loading,
+    setLoading,
+    fieldMap,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    searchInput,
+    setSearchInput,
+    filterUntranslated,
+    setFilterUntranslated,
+    filterStatus,
+    setFilterStatus,
+    sortBy,
+    setSortBy,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
+    handleToggleSort,
+    sortedRecords,
+    selectedRecordIds,
+    setSelectedRecordIds,
+    selectedTerms,
+    handleSelectAllOnPage,
+    handleToggleSelectRow,
+    loadTableData,
+    getRecordValue,
+    getRecordValueByName
+  } = useTermsManager({
+    selectedTableId,
+    targetLanguagesList
   });
 
-  // 防抖 localStorage 持久化（避免每次单元格编辑都阻塞主线程）
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem('glossahub_modified_cells', JSON.stringify(modifiedCells));
-      } catch (err) {
-        console.warn('Failed to persist modified cells:', err);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [modifiedCells]);
+  const paginatedRecords = sortedRecords;
 
-  // 竞态防护：每次发起 loadTableData 递增，迟到响应据此丢弃
-  const reqIdRef = useRef(0);
+  // Hook 2: 乐观锁、高亮追踪与锁定控制
+  const {
+    modifiedCells,
+    setModifiedCells,
+    clearModified,
+    lockLoadingId,
+    handleToggleRowLock: rawToggleLock,
+    handleBatchLock: rawBatchLock
+  } = useOptimisticTerm({ selectedTableId });
+
+  const handleToggleRowLock = useCallback((recId, currentLockState) => {
+    return rawToggleLock(recId, currentLockState, setRecords);
+  }, [rawToggleLock, setRecords]);
+
+  const handleBatchLock = useCallback((lock) => {
+    return rawBatchLock(lock, selectedRecordIds, () => loadTableData(selectedTableId));
+  }, [rawBatchLock, selectedRecordIds, loadTableData, selectedTableId]);
 
   // State for Batch Add Modal
   const [batchAddModalOpen, setBatchAddModalOpen] = useState(false);
   const [inheritOpen, setInheritOpen] = useState(false);
 
-  useEffect(() => {
-    setModifiedCells({});
-    // Switching data tables must clear the row-selection set; otherwise
-    // a recordId selected in the previous table would silently fail to
-    // match anything in the new table, and downstream bulk actions would
-    // either report "都已完成翻译" (misleading) or operate on 0 rows.
-    setSelectedRecordIds(new Set());
-  }, [selectedTableId]);
-
   // Column Visibility States
-  // Column dropdown visibility is managed internally by TranslationToolbar.
   const [visibleLanguages, setVisibleLanguages] = useState(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1000) {
       return ['EN（英文）'];
@@ -122,7 +149,6 @@ export default function TranslationTab({
     return targetLanguagesList;
   });
 
-  // Base columns that can be hidden (所在页面, 字号/负责人). Default: both hidden.
   const BASE_OPTIONAL_COLUMNS = [
     { key: '所在页面', label: '所在页面' },
     { key: '字号类别', label: '字号/负责人' },
@@ -131,37 +157,9 @@ export default function TranslationTab({
     return new Set(['所在页面', '字号类别']);
   });
 
-  // Filter/Search State
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchInput);
-      setCurrentPage(1);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  const [filterUntranslated, setFilterUntranslated] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('');
-  const [sortBy, setSortBy] = useState('default');
-  // sortOrder 仅作为 API 查询参数读取，无需 setter
-  const [sortOrder] = useState('desc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
-
-  // Field mappings
-  const [fieldMap, setFieldMap] = useState({});
-
-  // Sorting State (only affects online browsing, does not affect export)
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState(null); // 'asc' | 'desc' | null
-
   // Modal States
   const [editModalRecord, setEditModalRecord] = useState(null);
   const [_addModalOpen, setAddModalOpen] = useState(false);
-  const [selectedRecordIds, setSelectedRecordIds] = useState(new Set());
   const [copyContentOpen, setCopyContentOpen] = useState(false);
   const [batchTranslateOpen, setBatchTranslateOpen] = useState(false);
   const [batchGenerateKwOpen, setBatchGenerateKwOpen] = useState(false);
@@ -179,7 +177,6 @@ export default function TranslationTab({
   const [batchUpdateFields, setBatchUpdateFields] = useState({ context: '', owner: '' });
   const [batchCopyTargetTableId, setBatchCopyTargetTableId] = useState('');
   const [batchCopyDuplicateStrategy, setBatchCopyDuplicateStrategy] = useState('skip');
-  const [lockLoadingId, setLockLoadingId] = useState('');
   const [batchApproveOpen, setBatchApproveOpen] = useState(false);
   const [batchApproveStatus, setBatchApproveStatus] = useState('APPROVED');
   const [batchApproveRejectReason, setBatchApproveRejectReason] = useState('');
@@ -188,7 +185,7 @@ export default function TranslationTab({
   const fallbackUser = useMemo(() => safeGetLocalStorage('user', null), []);
   const currentUser = propUser ?? fallbackUser;
 
-  // Excluded target languages for translation (remembered per-table + global fallback)
+  // Excluded target languages for translation
   const [excludedTranslateLangs, setExcludedTranslateLangs] = useState(() => {
     return new Set(safeGetLocalStorage('glossa_excluded_translate_langs', []));
   });
@@ -233,7 +230,7 @@ export default function TranslationTab({
     const itemsToTranslate = targetRecords.map(r => {
       const fields = r.fields || {};
       const zhCn = (fields['CN（中文）'] || '').trim();
-      if (!zhCn) return null; // Skip terms without Chinese source text
+      if (!zhCn) return null;
       
       const missingLangs = activeTargetLangs.filter(lang => !fields[lang] || String(fields[lang]).trim() === '');
       if (missingLangs.length === 0) return null;
@@ -264,83 +261,44 @@ export default function TranslationTab({
 
     setBatchTargetTableId(selectedTableId);
     setBatchPreviewList(itemsToTranslate);
-    setBatchTranslateOpen(true);
-    setBatchProgress({ total: itemsToTranslate.length, current: 0, status: '等待开始批量翻译' });
     setSelectedBatchItemIds(new Set(itemsToTranslate.map(i => i.recordId)));
+    setBatchProgress({ total: itemsToTranslate.length, current: 0, status: '准备开始...' });
+    setBatchTranslateOpen(true);
+
+    startBatchTranslateProcess(itemsToTranslate);
   };
 
-  // Dynamically update missing languages when excludedTranslateLangs changes while modal is open
-  useEffect(() => {
-    if (batchTranslateOpen && batchPreviewList.length > 0) {
-      const activeTargetLangs = targetLanguagesList.filter(lang => !excludedTranslateLangs.has(lang));
-      setBatchPreviewList(prev => prev.map(item => {
-        const fields = item.existingFields || {};
-        const missingLangs = activeTargetLangs.filter(lang => !fields[lang] || String(fields[lang]).trim() === '');
-        return {
-          ...item,
-          missingLangs
-        };
-      }));
-    }
-  }, [excludedTranslateLangs, batchTranslateOpen, targetLanguagesList, batchPreviewList.length]);
-
-  const handleStartBatchTranslate = async () => {
+  const startBatchTranslateProcess = async (items) => {
     setIsTranslatingBatch(true);
-    // 本地工作副本 + 节流刷新：不再直接变异 state 对象，也不每条都全量 setState
-    const workingList = batchPreviewList.map(item => ({ ...item }));
+    let completedCount = 0;
     let successCount = 0;
     let errorCount = 0;
+    const totalTasks = items.length;
 
-    // 攒批刷新：每翻译完 2 条或距上次刷新超过 300ms 才真正 setState 一次
+    const workingList = [...items];
+    const tasks = items.map((item, index) => ({ item, index }));
+
     let pendingFlush = 0;
-    let lastFlushAt = Date.now();
     const flushPreview = (force = false) => {
-      const now = Date.now();
-      if (force || pendingFlush >= 2 || now - lastFlushAt >= 300) {
-        setBatchPreviewList([...workingList]);
+      if (force || pendingFlush >= 3 || completedCount === totalTasks) {
         pendingFlush = 0;
-        lastFlushAt = now;
+        setBatchPreviewList([...workingList]);
       }
     };
 
-    const activeTargetLangs = targetLanguagesList.filter(lang => !excludedTranslateLangs.has(lang));
-
-    // 收集所有待翻译的任务项
-    const tasks = [];
-    for (let i = 0; i < workingList.length; i++) {
-      const item = workingList[i];
-      if (!selectedBatchItemIds.has(item.recordId)) continue;
-      
-      const effectiveMissingLangs = (item.missingLangs || []).filter(l => activeTargetLangs.includes(l));
-      if (effectiveMissingLangs.length === 0) continue;
-      tasks.push({ item, index: i, effectiveMissingLangs });
-    }
-
-    if (tasks.length === 0) {
-      setIsTranslatingBatch(false);
-      setBatchProgress({ total: 0, current: 0, status: '所选项已全部翻译，无需重复翻译。' });
-      return;
-    }
-
-    const totalTasks = tasks.length;
-    let completedCount = 0;
-
-    setBatchProgress({
-      total: totalTasks,
-      current: 0,
-      status: `准备就绪，正在以并发模式启动翻译 (0/${totalTasks})...`
-    });
-
-    const translateTask = async (task) => {
-      const { item, index: i, effectiveMissingLangs } = task;
+    const translateTask = async ({ item, index: i }) => {
       try {
-        const targetLangsReq = effectiveMissingLangs.join(',');
+        const activeTargetLangs = TARGET_LANGUAGES.filter(lang => !excludedTranslateLangs.has(lang));
+        const effectiveMissingLangs = (item.missingLangs || []).filter(l => activeTargetLangs.includes(l));
+        if (effectiveMissingLangs.length === 0) {
+          return;
+        }
 
         const inputs = {
-          KW: item.KW,
-          text: item['中文'],
-          context: item['所在页面'] || '无',
-          target_languages: targetLangsReq
+          KW: item.KW || '',
+          zh_cn: item['中文'] || '',
+          context: item['所在页面'] || '',
+          target_languages: effectiveMissingLangs.join(', ')
         };
 
         let res = null;
@@ -357,7 +315,6 @@ export default function TranslationTab({
               break;
             }
             const error = await res.json().catch(() => ({}));
-            console.error(`🔍 [batch-translate] Dify error (attempt ${attempt + 1}):`, error);
             let msg = error.error || '翻译接口失败';
             if (msg.includes('PluginInvokeError') || msg.includes('google/genai')) {
               msg = 'Dify 内部大模型插件异常 (Google GenAI 报错或频率超限)';
@@ -415,7 +372,6 @@ export default function TranslationTab({
       }
     };
 
-    // 并发工作池 (3 路并发，在消除 600ms 冗余休眠的同时避免频控，提速 300%)
     const CONCURRENCY = 3;
     let taskPointer = 0;
     const workers = Array.from({ length: Math.min(CONCURRENCY, tasks.length) }, async () => {
@@ -427,7 +383,6 @@ export default function TranslationTab({
 
     await Promise.all(workers);
 
-    // 循环结束强制终刷，确保后续「确认写入」能读到完整数据
     flushPreview(true);
     setIsTranslatingBatch(false);
     if (errorCount > 0) {
@@ -448,63 +403,55 @@ export default function TranslationTab({
       batchPreviewList.forEach(item => {
         if (!selectedBatchItemIds.has(item.recordId)) return;
         const fields = {};
-        let hasNewTrans = false;
-        Object.keys(item.translations).forEach(lang => {
-          if (item.translations[lang]) {
-            fields[lang] = item.translations[lang];
-            hasNewTrans = true;
+        let hasTrans = false;
+        
+        if (item.translations) {
+          Object.keys(item.translations).forEach(lang => {
+            const val = item.translations[lang];
+            if (val && String(val).trim() !== '') {
+              fields[lang] = val;
+              hasTrans = true;
+            }
+          });
+        }
+        
+        if (hasTrans) {
+          const transMeta = {};
+          if (item.tmMatch) {
+            Object.keys(fields).forEach(l => {
+              transMeta[l] = 'tm';
+            });
           }
-        });
-        if (hasNewTrans) {
           recordsToUpdate.push({
             id: item.recordId,
-            ...fields
+            fields,
+            translationsMeta: Object.keys(transMeta).length > 0 ? transMeta : undefined
           });
         }
       });
 
       if (recordsToUpdate.length === 0) {
-        setBatchTranslateOpen(false);
+        toast.info('没有需要写入的翻译结果');
+        setIsSavingBatch(false);
         return;
       }
-
-      const updatedForSync = recordsToUpdate.map(r => {
-        const { id, ...newFields } = r;
-        const existingRec = records.find(rec => (rec.recordId || rec.id) === id);
-        const itemInPreview = batchPreviewList.find(i => i.recordId === id);
-
-        const existingMeta = existingRec ? (existingRec.translationsMeta || {}) : {};
-        const newMeta = { ...existingMeta };
-        if (itemInPreview) {
-          Object.keys(itemInPreview.translations || {}).forEach(lang => {
-            if (itemInPreview.translations[lang]) {
-              newMeta[lang] = itemInPreview.tmMatch ? 'tm' : 'ai';
-            }
-          });
-        }
-
-        return {
-          recordId: id,
-          fields: {
-             ...(existingRec ? existingRec.fields : {}),
-             ...newFields
-          },
-          translationsMeta: newMeta
-        };
-      });
 
       const res = await apiFetch(`/api/tables/${batchTargetTableId}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ added: [], updated: updatedForSync })
+        body: JSON.stringify({
+          records: recordsToUpdate
+        })
       });
-      
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || '写入失败');
+        throw new Error(data.error || '批量写入保存失败');
       }
+
+      const syncResult = await res.json().catch(() => ({}));
+      toast.success(syncResult.message || `成功写入 ${recordsToUpdate.length} 条翻译记录！`);
       
-      toast.success('批量翻译写入成功');
       setModifiedCells(prev => {
         const newModified = { ...prev };
         recordsToUpdate.forEach(r => {
@@ -529,7 +476,6 @@ export default function TranslationTab({
     }
   };
 
-  // 仅拉取表格列表，不再依赖 selectedTableId（选中恢复逻辑拆到下方独立 effect）
   const loadTables = useCallback(async () => {
     try {
       setLoading(true);
@@ -543,9 +489,8 @@ export default function TranslationTab({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setLoading]);
 
-  // 选中表恢复：列表就绪后，若当前无选中或选中表已不存在，则恢复上次选中或选首表
   useEffect(() => {
     if (tables.length === 0) return;
     const savedTableId = safeGetLocalStorage('glossa_last_selected_table_id', '');
@@ -559,225 +504,15 @@ export default function TranslationTab({
     }
   }, [tables, selectedTableId, setSelectedTableId]);
 
-  const [totalRecords, setTotalRecords] = useState(0);
-
-  const loadTableData = useCallback(async (tableId) => {
-    if (!tableId) return;
-    // 竞态防护：本次请求领取唯一递增 id；任何更新的请求发出后，本响应即视为迟到并丢弃
-    const myId = ++reqIdRef.current;
-    try {
-      setLoading(true);
-
-      const queryParams = new URLSearchParams({
-        page: currentPage,
-        pageSize,
-        search: debouncedSearchQuery,
-        status: filterStatus,
-        untranslated: filterUntranslated ? 'true' : 'false',
-        sortBy,
-        sortOrder
-      });
-
-      const res = await apiFetch(`/api/tables/${tableId}/records?${queryParams.toString()}`);
-
-      if (myId !== reqIdRef.current) return;
-
-      if (res.ok) {
-        const rData = await res.json().catch(() => ({}));
-        if (myId !== reqIdRef.current) return;
-        setRecords(rData.records || []);
-        setTotalRecords(rData.total || 0);
-        // REMOVED: setModifiedCells({}) here to avoid pagination clearing
-
-        const fMap = {
-          'KW': 'KW',
-          'CN（中文）': 'CN（中文）',
-          '所在页面': '所在页面',
-          '字号类别': '字号类别'
-        };
-        targetLanguagesList.forEach(lang => {
-          fMap[lang] = lang;
-        });
-
-        setFieldMap(fMap);
-      } else {
-        toast.error('获取词条数据失败');
-      }
-    } catch (err) {
-      if (myId === reqIdRef.current) {
-        console.error('加载表格数据失败:', err);
-        toast.error(`获取词条数据失败: ${err.message}`);
-      }
-    } finally {
-      // 迟到响应不得打断新请求的 loading 态
-      if (myId === reqIdRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [currentPage, pageSize, debouncedSearchQuery, filterStatus, filterUntranslated, sortBy, sortOrder, toast, targetLanguagesList]);
-
   useEffect(() => {
     loadTables();
   }, [loadTables]);
 
-  useEffect(() => {
-    if (selectedTableId) {
-      loadTableData(selectedTableId);
-    }
-  }, [selectedTableId, loadTableData]);
-
-  const getRecordValue = useCallback((rec, fieldId) => {
-    if (!rec || !rec.fields) return '';
-    return rec.fields[fieldId] || '';
-  }, []);
-
-  const getRecordValueByName = useCallback((rec, fieldName) => {
-    const fId = fieldMap[fieldName];
-    if (fId) return getRecordValue(rec, fId);
-    return rec?.fields ? rec.fields[fieldName] || '' : '';
-  }, [fieldMap, getRecordValue]);
-
-  const handleToggleSort = useCallback((field) => {
-    if (sortField !== field) {
-      setSortField(field);
-      setSortDirection('asc');
-    } else if (sortDirection === 'asc') {
-      setSortDirection('desc');
-    } else {
-      setSortField(null);
-      setSortDirection(null);
-    }
-  }, [sortField, sortDirection]);
-
-  // Online browser sorting (does not affect DB export)
-  const sortedRecords = useMemo(() => {
-    if (!sortField || !sortDirection) {
-      return records;
-    }
-
-    return [...records].sort((a, b) => {
-      if (sortField === '#index' || sortField === 'index') {
-        const ordA = a.sortOrder ?? a.sort_order ?? 0;
-        const ordB = b.sortOrder ?? b.sort_order ?? 0;
-        return sortDirection === 'asc' ? ordA - ordB : ordB - ordA;
-      }
-
-      if (sortField === 'status') {
-        const stA = a.status || 'DRAFT';
-        const stB = b.status || 'DRAFT';
-        const cmp = stA.localeCompare(stB);
-        return sortDirection === 'asc' ? cmp : -cmp;
-      }
-
-      if (sortField === 'progress') {
-        const getProgressCount = (rec) => {
-          let filled = 0;
-          TARGET_LANGUAGES.forEach(lang => {
-            const val = getRecordValueByName(rec, lang);
-            if (val && String(val).trim()) filled++;
-          });
-          return filled;
-        };
-        const pA = getProgressCount(a);
-        const pB = getProgressCount(b);
-        return sortDirection === 'asc' ? pA - pB : pB - pA;
-      }
-
-      const valA = String(getRecordValueByName(a, sortField) || '');
-      const valB = String(getRecordValueByName(b, sortField) || '');
-      const cmp = valA.localeCompare(valB, 'zh-Hans-CN', { numeric: true, sensitivity: 'base' });
-      return sortDirection === 'asc' ? cmp : -cmp;
-    });
-    // TARGET_LANGUAGES 即 targetLanguagesList 的渲染期别名，作为依赖与别名用法保持一致
-  }, [records, sortField, sortDirection, getRecordValueByName, TARGET_LANGUAGES]);
-
-  const paginatedRecords = sortedRecords;
-
-  // 选中词条记忆化：引用稳定，避免父组件任意重渲染都产生新数组，
-  // 导致 BatchGenerateKwModal 等子弹窗误判数据变化而重置用户输入
-  const selectedTerms = useMemo(
-    () => records.filter(r => selectedRecordIds.has(r.recordId || r.id)),
-    [records, selectedRecordIds]
-  );
-
-  // Handlers
-  // 单行锁定切换；返回 true/false 表示成功与否，供批量操作 Promise.allSettled 统计
-  const handleToggleRowLock = useCallback(async (recId, currentLockState) => {
-    const nextState = !currentLockState;
-    try {
-      setLockLoadingId(recId);
-      const res = await apiFetch(`/api/terms/${recId}/lock`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isLocked: nextState })
-      });
-      if (res.ok) {
-        toast.success(nextState ? '词条已成功锁定' : '词条已解锁');
-        setRecords(prev => prev.map(r => r.recordId === recId ? { ...r, isLocked: nextState ? 1 : 0 } : r));
-        return true;
-      }
-      const errData = await res.json().catch(() => ({}));
-      toast.error(errData.error || '操作失败');
-      return false;
-    } catch {
-      toast.error('修改锁定状态失败');
-      return false;
-    } finally {
-      setLockLoadingId('');
-    }
-  }, [toast]);
-
-  const handleSelectAllOnPage = useCallback((checked) => {
-    if (checked) {
-      setSelectedRecordIds(prev => new Set([...prev, ...paginatedRecords.map(r => r.recordId || r.id)]));
-    } else {
-      const pageIds = new Set(paginatedRecords.map(r => r.recordId || r.id));
-      setSelectedRecordIds(prev => new Set([...prev].filter(id => !pageIds.has(id))));
-    }
-  }, [paginatedRecords]);
-
-  const handleToggleSelectRow = useCallback((recId, checked) => {
-    setSelectedRecordIds(prev => {
-      const next = new Set(prev);
-      if (checked) {
-        next.add(recId);
-      } else {
-        next.delete(recId);
-      }
-      return next;
-    });
-  }, []);
-
-  // 打开编辑弹窗并清除该行的"已修改"高亮。
-  // useCallback + 函数式 setState：引用稳定，不击穿子组件 memo
   const handleEditClick = useCallback((rec) => {
     setEditModalRecord(rec);
     const recId = rec.recordId || rec.id;
-    if (!recId) return;
-    setModifiedCells(prev => {
-      if (!prev[recId]) return prev;
-      const next = { ...prev };
-      delete next[recId];
-      return next;
-    });
-  }, []);
-
-  // 批量锁定/解锁：并发执行 + allSettled 统计成功/失败数，完成后统一刷新表格数据
-  const handleBatchLock = useCallback(async (lock) => {
-    const ids = Array.from(selectedRecordIds);
-    if (ids.length === 0) return;
-    const results = await Promise.allSettled(
-      ids.map(id => handleToggleRowLock(id, !lock))
-    );
-    const okCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-    const failCount = ids.length - okCount;
-    if (failCount > 0) {
-      toast.error(`批量${lock ? '锁定' : '解锁'}完成：${okCount} 条成功，${failCount} 条失败`);
-    } else {
-      toast.success(`批量${lock ? '锁定' : '解锁'}完成：${okCount} 条成功`);
-    }
-    await loadTableData(selectedTableId);
-  }, [selectedRecordIds, handleToggleRowLock, loadTableData, selectedTableId, toast]);
+    if (recId) clearModified(recId);
+  }, [clearModified]);
 
   const handleBatchApproveSubmit = async () => {
     if (selectedRecordIds.size === 0) return;
@@ -803,14 +538,12 @@ export default function TranslationTab({
         throw new Error(errData.error || '批量审核失败');
       }
     } catch (err) {
-      // apiFetch 非 ok 不抛 Response 而是返回 res（上面已处理）；此处 catch 到的均为 Error 对象
       toast.error(`批量审核失败: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // 批量删除 (走回收站, 30 天可恢复)
   const handleBatchDelete = async () => {
     if (selectedRecordIds.size === 0) return;
     const termIds = Array.from(selectedRecordIds);
@@ -847,7 +580,6 @@ export default function TranslationTab({
     }
   };
 
-  // 批量清空翻译（保留中文，删除其他所有目标语种翻译）
   const handleBatchClearTranslations = async () => {
     if (selectedRecordIds.size === 0) return;
     const termIds = Array.from(selectedRecordIds);
@@ -1148,24 +880,24 @@ export default function TranslationTab({
         open={_addModalOpen}
         onClose={() => setAddModalOpen(false)}
         selectedTableId={selectedTableId}
-        targetLanguages={TARGET_LANGUAGES}
-        excludedTranslateLangs={excludedTranslateLangs}
-        onAddSuccess={(addedItem) => {
-          if (addedItem && addedItem.recordId) {
-            setModifiedCells(prev => ({
-              ...prev,
-              [addedItem.recordId]: { isAdded: true }
-            }));
-          }
-          loadTableData(selectedTableId);
-        }}
+        targetLanguages={targetLanguagesList}
+        fieldMap={fieldMap}
+        projectRole={projectRole}
+        onAddSuccess={() => loadTableData(selectedTableId)}
+      />
+
+      <BatchAddModal
+        open={batchAddModalOpen}
+        onClose={() => setBatchAddModalOpen(false)}
+        selectedTableId={selectedTableId}
+        targetLanguages={targetLanguagesList}
+        onAddSuccess={() => loadTableData(selectedTableId)}
       />
 
       <EditTermModal
         open={!!editModalRecord}
         record={editModalRecord}
-        projectId="proj-default"
-        targetLanguages={TARGET_LANGUAGES}
+        targetLanguages={targetLanguagesList}
         fieldMap={fieldMap}
         getRecordValue={getRecordValue}
         currentUserRole={currentUser?.role}
@@ -1177,39 +909,17 @@ export default function TranslationTab({
       <InheritModal
         open={inheritOpen}
         onClose={() => setInheritOpen(false)}
-        currentTableId={selectedTableId}
         tables={tables}
+        selectedTableId={selectedTableId}
         onSuccess={() => loadTableData(selectedTableId)}
       />
-
-      <BatchAddModal
-        open={batchAddModalOpen}
-        onClose={() => setBatchAddModalOpen(false)}
-        selectedTableId={selectedTableId}
-        targetLanguages={TARGET_LANGUAGES}
-        onAddSuccess={(addedItems) => {
-          if (Array.isArray(addedItems)) {
-            setModifiedCells(prev => {
-              const next = { ...prev };
-              addedItems.forEach(item => {
-                if (item.recordId) next[item.recordId] = { isAdded: true };
-              });
-              return next;
-            });
-          }
-          loadTableData(selectedTableId);
-        }}
-      />
-
-      {/* M7: 原 <HistoryModal> 及其 snapshots/loadingSnapshots/rollingBackId 死 state 已移除 ——
-          修改历史/回退能力现由 EditTermModal 右侧 HistoryPanel 承载 */}
 
       <BatchCategoryModal
         open={batchUpdateOpen}
         onClose={() => setBatchUpdateOpen(false)}
         selectedCount={selectedRecordIds.size}
-        batchUpdateFields={batchUpdateFields}
-        setBatchUpdateFields={setBatchUpdateFields}
+        fields={batchUpdateFields}
+        setFields={setBatchUpdateFields}
         onSubmit={handleBatchUpdateCategorySubmit}
         loading={loading}
       />
@@ -1220,8 +930,8 @@ export default function TranslationTab({
         selectedCount={selectedRecordIds.size}
         tables={tables}
         currentTableId={selectedTableId}
-        batchCopyTargetTableId={batchCopyTargetTableId}
-        setBatchCopyTargetTableId={setBatchCopyTargetTableId}
+        targetTableId={batchCopyTargetTableId}
+        setTargetTableId={setBatchCopyTargetTableId}
         duplicateStrategy={batchCopyDuplicateStrategy}
         setDuplicateStrategy={setBatchCopyDuplicateStrategy}
         onSubmit={handleBatchCopySubmit}
@@ -1240,41 +950,40 @@ export default function TranslationTab({
         loading={loading}
       />
 
-      <BatchTranslateModal
-        open={batchTranslateOpen}
-        onClose={() => setBatchTranslateOpen(false)}
-        tables={tables}
-        batchTargetTableId={batchTargetTableId}
-        onBatchTargetTableChange={(id) => setBatchTargetTableId(id)}
-        batchPreviewList={batchPreviewList}
-        selectedBatchItemIds={selectedBatchItemIds}
-        setSelectedBatchItemIds={setSelectedBatchItemIds}
-        batchProgress={batchProgress}
-        isTranslatingBatch={isTranslatingBatch}
-        isSavingBatch={isSavingBatch}
-        onStartBatchTranslate={handleStartBatchTranslate}
-        onConfirmBatchWrite={handleConfirmBatchWrite}
-        targetLanguages={TARGET_LANGUAGES}
-        excludedTranslateLangs={excludedTranslateLangs}
-        onToggleExcludeLang={handleToggleExcludeLang}
-        onSetExcludedLangs={handleSetExcludedTranslateLangs}
-      />
-
       <CopyContentModal
         open={copyContentOpen}
         onClose={() => setCopyContentOpen(false)}
         selectedRecords={selectedTerms}
-        targetLanguages={TARGET_LANGUAGES}
+        targetLanguages={targetLanguagesList}
         getRecordValueByName={getRecordValueByName}
+      />
+
+      <BatchTranslateModal
+        open={batchTranslateOpen}
+        onClose={() => {
+          if (!isTranslatingBatch) {
+            setBatchTranslateOpen(false);
+          }
+        }}
+        previewList={batchPreviewList}
+        selectedIds={selectedBatchItemIds}
+        setSelectedIds={setSelectedBatchItemIds}
+        isTranslating={isTranslatingBatch}
+        isSaving={isSavingBatch}
+        progress={batchProgress}
+        onConfirmWrite={handleConfirmBatchWrite}
+        targetLanguages={targetLanguagesList}
+        excludedLangs={excludedTranslateLangs}
+        onToggleExcludeLang={handleToggleExcludeLang}
+        onSelectAllLangs={() => handleSetExcludedTranslateLangs(new Set())}
+        onClearAllLangs={() => handleSetExcludedTranslateLangs(new Set(targetLanguagesList))}
       />
 
       <BatchGenerateKwModal
         open={batchGenerateKwOpen}
         onClose={() => setBatchGenerateKwOpen(false)}
+        selectedRecords={selectedTerms}
         selectedTableId={selectedTableId}
-        tableName={tables.find(t => t.id === selectedTableId)?.name || ''}
-        selectedTerms={selectedTerms}
-        allRecords={records}
         onSuccess={() => loadTableData(selectedTableId)}
       />
     </div>

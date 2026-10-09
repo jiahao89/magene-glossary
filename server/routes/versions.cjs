@@ -1,22 +1,15 @@
 const express = require('express');
-const crypto = require('crypto');
 const router = express.Router();
 const { db, getDbType } = require('../config/db.cjs');
 const { authenticateToken, requireProjectMember, requireRole } = require('../middleware/auth.cjs');
 const { backupToRecycleBin } = require('../services/recycleBin.cjs');
 const { createAuditLog } = require('../services/auditLogger.cjs');
+const versionRepo = require('../repositories/versionRepository.cjs');
 
 // GET /api/tables - 获取所有固件版本表
 router.get('/tables', authenticateToken, async (_req, res) => {
   try {
-    const versions = await db.query(
-      `SELECT v.id, v.version_name AS name, v.created_at, u.name AS creator_name
-       FROM versions v
-       LEFT JOIN users u ON v.created_by = u.id
-       WHERE v.project_id = $1
-       ORDER BY v.created_at DESC`,
-      ['proj-default']
-    );
+    const versions = await versionRepo.getVersionsByProject('proj-default');
 
     const updatedVersions = versions.map(ver => ({
       id: ver.id,
@@ -42,15 +35,11 @@ router.post('/projects/:projectId/versions', authenticateToken, requireProjectMe
   }
 
   try {
-    const existing = await db.queryOne(
-      'SELECT id FROM versions WHERE project_id = $1 AND version_name = $2',
-      [projectId, versionName]
-    );
+    const existing = await versionRepo.findVersionByName(projectId, versionName);
     if (existing) {
       return res.status(409).json({ error: '该版本已存在' });
     }
 
-    const versionId = crypto.randomUUID();
     let createdBy = req.user?.id || null;
     if (createdBy) {
       try {
@@ -61,17 +50,11 @@ router.post('/projects/:projectId/versions', authenticateToken, requireProjectMe
       }
     }
 
-    if (getDbType() === 'postgres') {
-      await db.run(
-        'INSERT INTO versions (id, project_id, version_name, created_at, created_by) VALUES ($1, $2, $3, NOW(), $4)',
-        [versionId, projectId, versionName, createdBy]
-      );
-    } else {
-      await db.run(
-        "INSERT INTO versions (id, project_id, version_name, created_at, created_by) VALUES ($1, $2, $3, datetime('now'), $4)",
-        [versionId, projectId, versionName, createdBy]
-      );
-    }
+    const { id: versionId } = await versionRepo.createVersion({
+      projectId,
+      versionName,
+      createdBy
+    });
 
     let totalTerms = 0;
     if (baseVersionId) {
@@ -100,87 +83,14 @@ router.post('/projects/:projectId/versions', authenticateToken, requireProjectMe
 router.post('/projects/:projectId/versions/:versionId/inherit-chunk', authenticateToken, requireProjectMember, requireRole(['owner', 'editor']), async (req, res) => {
   const { versionId } = req.params;
   const { baseVersionId, offset = 0, limit = 100 } = req.body;
-  const dbType = getDbType();
 
   if (!baseVersionId) {
     return res.status(400).json({ error: '基准版本 ID 不能为空' });
   }
 
   try {
-    const baseTerms = await db.query(
-      'SELECT kw, context, owner, zh_cn, translations, translations_meta, sort_order FROM terms WHERE version_id = $1 ORDER BY sort_order ASC, created_at ASC, id ASC LIMIT $2 OFFSET $3',
-      [baseVersionId, limit, offset]
-    );
-
-    if (baseTerms.length === 0) {
-      return res.json({ success: true, processed: 0 });
-    }
-
-    if (dbType === 'postgres') {
-      const valuePlaceholders = [];
-      const values = [];
-      let paramIdx = 1;
-
-      for (const term of baseTerms) {
-        const newTermId = crypto.randomUUID();
-        const translationsStr = typeof term.translations === 'string'
-          ? term.translations
-          : JSON.stringify(term.translations || {});
-        const translationsMetaStr = typeof term.translations_meta === 'string'
-          ? term.translations_meta
-          : JSON.stringify(term.translations_meta || {});
-
-        valuePlaceholders.push(
-          `($${paramIdx}, $${paramIdx + 1}, $${paramIdx + 2}, $${paramIdx + 3}, $${paramIdx + 4}, $${paramIdx + 5}, $${paramIdx + 6}::jsonb, $${paramIdx + 7}::jsonb, NOW(), NOW(), FALSE, $${paramIdx + 8})`
-        );
-        values.push(
-          newTermId,
-          versionId,
-          term.kw,
-          term.context ?? null,
-          term.owner ?? null,
-          term.zh_cn,
-          translationsStr,
-          translationsMetaStr,
-          term.sort_order ?? 0
-        );
-        paramIdx += 9;
-      }
-
-      const sql = `INSERT INTO terms (id, version_id, kw, context, owner, zh_cn, translations, translations_meta, created_at, updated_at, is_locked, sort_order) VALUES ${valuePlaceholders.join(', ')} ON CONFLICT (version_id, kw) DO NOTHING`;
-      await db.run(sql, values);
-    } else {
-      const valuePlaceholders = [];
-      const values = [];
-
-      for (const term of baseTerms) {
-        const newTermId = crypto.randomUUID();
-        const translationsStr = typeof term.translations === 'string'
-          ? term.translations
-          : JSON.stringify(term.translations || {});
-        const translationsMetaStr = typeof term.translations_meta === 'string'
-          ? term.translations_meta
-          : JSON.stringify(term.translations_meta || {});
-
-        valuePlaceholders.push(`(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), 0, ?)`);
-        values.push(
-          newTermId,
-          versionId,
-          term.kw,
-          term.context ?? null,
-          term.owner ?? null,
-          term.zh_cn,
-          translationsStr,
-          translationsMetaStr,
-          term.sort_order ?? 0
-        );
-      }
-
-      const sql = `INSERT OR IGNORE INTO terms (id, version_id, kw, context, owner, zh_cn, translations, translations_meta, created_at, updated_at, is_locked, sort_order) VALUES ${valuePlaceholders.join(', ')}`;
-      await db.run(sql, values);
-    }
-
-    res.json({ success: true, processed: baseTerms.length });
+    const processed = await versionRepo.inheritTermsChunk(versionId, baseVersionId, offset, limit);
+    res.json({ success: true, processed });
   } catch (err) {
     console.error('分批继承词条失败:', err);
     res.status(500).json({ error: `继承词条失败: ${err.message}` });
@@ -191,13 +101,13 @@ router.post('/projects/:projectId/versions/:versionId/inherit-chunk', authentica
 router.delete('/projects/:projectId/versions/:versionId', authenticateToken, requireProjectMember, requireRole(['owner']), async (req, res) => {
   const { projectId, versionId } = req.params;
   try {
-    const ver = await db.queryOne('SELECT id, version_name FROM versions WHERE id = $1 AND project_id = $2', [versionId, projectId]);
+    const ver = await versionRepo.getVersionById(versionId, projectId);
     if (!ver) {
       return res.status(404).json({ error: '数据表未找到' });
     }
 
     await backupToRecycleBin('version', versionId, ver.version_name, req.user.id);
-    await db.run('DELETE FROM versions WHERE id = $1', [versionId]);
+    await versionRepo.deleteVersion(versionId);
 
     await createAuditLog({
       action: '删除版本',
@@ -224,18 +134,12 @@ router.put('/projects/:projectId/versions/:versionId', authenticateToken, requir
 
   try {
     const newName = versionName.trim();
-    const existing = await db.queryOne(
-      'SELECT id FROM versions WHERE project_id = $1 AND version_name = $2 AND id != $3',
-      [projectId, newName, versionId]
-    );
+    const existing = await versionRepo.findVersionByName(projectId, newName, versionId);
     if (existing) {
       return res.status(409).json({ error: '已存在同名数据表，请使用其他名称' });
     }
 
-    await db.run(
-      'UPDATE versions SET version_name = $1 WHERE id = $2 AND project_id = $3',
-      [newName, versionId, projectId]
-    );
+    await versionRepo.renameVersion(versionId, projectId, newName);
 
     await createAuditLog({
       action: '重命名版本',
@@ -262,8 +166,8 @@ router.post('/versions/:versionId/inherit-translations', authenticateToken, asyn
   }
 
   try {
-    const targetVer = await db.queryOne('SELECT version_name FROM versions WHERE id = $1', [versionId]);
-    const sourceVer = await db.queryOne('SELECT version_name FROM versions WHERE id = $1', [sourceVersionId]);
+    const targetVer = await versionRepo.getVersionById(versionId);
+    const sourceVer = await versionRepo.getVersionById(sourceVersionId);
 
     if (!targetVer || !sourceVer) {
       return res.status(404).json({ error: '指定的源版本或目标版本不存在！' });

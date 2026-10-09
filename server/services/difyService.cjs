@@ -405,11 +405,236 @@ async function generateKwHelper(projectId, text, enText = '', context = '') {
   return 'KW_ITEM_' + (trimmedText.length);
 }
 
+// ============================================================
+// Dify 网络安全与多实例容错降级机制
+// ============================================================
+
+const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 GlossaHub/1.2';
+const engineFailureTimestamps = new Map();
+let preferredEngineUrl = null;
+
+function isPrivateOrLocalUrl(urlString) {
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname.endsWith('.local')) {
+      return true;
+    }
+    const ipMatch = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipMatch) {
+      const b0 = parseInt(ipMatch[1], 10);
+      const b1 = parseInt(ipMatch[2], 10);
+      if (b0 === 10) return true; // 10.0.0.0/8
+      if (b0 === 127) return true; // 127.0.0.0/8
+      if (b0 === 172 && (b1 >= 16 && b1 <= 31)) return true; // 172.16.0.0/12
+      if (b0 === 192 && b1 === 168) return true; // 192.168.0.0/16
+      if (b0 === 169 && b1 === 254) return true; // 169.254.0.0/16 Link-local
+      if (b0 === 0) return true; // 0.0.0.0
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function getBuiltinDifyApps() {
+  const keys = getBuiltinKeys();
+  const apps = {
+    'night.magene.cn': 'app-zV0Lo78Bi5WjhplWDL7OwsWR',
+    'api.dify.ai': 'app-aochEehgytnJciYeI3L1pqfj'
+  };
+
+  if (keys.length > 0) {
+    keys.forEach(k => {
+      if (k.startsWith('app-zV0') || k.includes('zV0')) {
+        apps['night.magene.cn'] = k;
+      } else if (k.startsWith('app-aoch') || k.includes('aoch')) {
+        apps['api.dify.ai'] = k;
+      }
+    });
+    if (keys[0] && !keys[0].startsWith('app-aoch')) apps['night.magene.cn'] = keys[0];
+    if (keys[1] && !keys[1].startsWith('app-zV0')) apps['api.dify.ai'] = keys[1];
+  }
+  return apps;
+}
+
+function resolveBuiltinKey(baseUrl, providedKey, fallbackKey) {
+  if (providedKey && typeof providedKey === 'string' && providedKey.trim() !== '') {
+    return providedKey.trim();
+  }
+  for (const [host, builtinKey] of Object.entries(getBuiltinDifyApps())) {
+    if (baseUrl && baseUrl.includes(host)) {
+      return builtinKey;
+    }
+  }
+  return fallbackKey || '';
+}
+
+let cachedOutboundIp = null;
+let outboundIpResolved = false;
+async function getOutboundIp() {
+  if (outboundIpResolved) return cachedOutboundIp;
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    if (r.ok) {
+      const j = await r.json();
+      cachedOutboundIp = j.ip || null;
+    }
+  } catch {}
+  outboundIpResolved = true;
+  return cachedOutboundIp;
+}
+
+async function executeDifyWithFailover(primaryConfig, inputs, userIdStr) {
+  const outboundIp = await getOutboundIp();
+
+  const builtinApps = getBuiltinDifyApps();
+  const orderedHosts = ['api.dify.ai', 'night.magene.cn'];
+  const builtinCandidates = [];
+  for (const host of orderedHosts) {
+    if (builtinApps[host]) {
+      builtinCandidates.push({
+        baseUrl: `https://${host}/v1`,
+        apiKey: builtinApps[host]
+      });
+    }
+  }
+
+  const candidates = [primaryConfig, ...builtinCandidates];
+  const uniqueCandidates = [];
+  const seen = new Set();
+
+  for (const c of candidates) {
+    if (!c || !c.baseUrl || !c.apiKey) continue;
+    let url = c.baseUrl.replace(/\/$/, '').trim();
+    const key = resolveBuiltinKey(url, c.apiKey, null);
+    const sig = `${url}___${key}`;
+    if (!seen.has(sig)) {
+      seen.add(sig);
+      uniqueCandidates.push({ baseUrl: url, apiKey: key });
+    }
+  }
+
+  if (preferredEngineUrl) {
+    const prefIdx = uniqueCandidates.findIndex(c => c.baseUrl === preferredEngineUrl);
+    if (prefIdx > 0) {
+      const [fav] = uniqueCandidates.splice(prefIdx, 1);
+      uniqueCandidates.unshift(fav);
+    }
+  }
+
+  let lastStatus = 500;
+  let lastErrorText = '';
+
+  for (let cIdx = 0; cIdx < uniqueCandidates.length; cIdx++) {
+    const item = uniqueCandidates[cIdx];
+    const recentFailTime = engineFailureTimestamps.get(item.baseUrl) || 0;
+    const isRecentlyFailed = (Date.now() - recentFailTime < 30000);
+    const candidateTimeout = isRecentlyFailed ? 20000 : 60000;
+    try {
+      const targetUrl = `${item.baseUrl}/workflows/run`;
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${item.apiKey}`,
+          'User-Agent': BROWSER_USER_AGENT,
+          'Accept': 'text/event-stream',
+          'X-Magene-Source': 'GlossaHub'
+        },
+        signal: AbortSignal.timeout(candidateTimeout),
+        body: JSON.stringify({
+          inputs,
+          response_mode: 'streaming',
+          user: userIdStr || 'glossahub_client'
+        })
+      });
+
+      if (response.ok) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+        let finalData = null;
+        let streamError = null;
+        let buffer = '';
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data: ')) {
+                try {
+                  const eventStr = trimmed.substring(6);
+                  if (eventStr === 'ping') continue;
+                  
+                  const eventData = JSON.parse(eventStr);
+                  if (eventData.event === 'workflow_finished') {
+                    finalData = eventData;
+                  } else if (eventData.event === 'error') {
+                    streamError = eventData.message || 'Stream error';
+                  }
+                } catch {}
+              }
+            }
+          }
+        }
+
+        if (streamError) {
+          lastErrorText = streamError;
+          engineFailureTimestamps.set(item.baseUrl, Date.now());
+          console.warn(`⚠️ Dify workflow stream error on ${item.baseUrl}: ${streamError}`);
+        } else if (finalData) {
+          const status = finalData.data?.status || finalData.status;
+          if (status !== 'failed' && status !== 'stopped') {
+            preferredEngineUrl = item.baseUrl;
+            return { ok: true, data: { data: finalData.data }, usedUrl: item.baseUrl };
+          } else {
+            lastErrorText = finalData.data?.error || finalData.error || `Workflow status: ${status}`;
+            engineFailureTimestamps.set(item.baseUrl, Date.now());
+            console.warn(`⚠️ Dify workflow status ${status} on ${item.baseUrl}: ${lastErrorText}`);
+          }
+        } else {
+          lastErrorText = "Stream finished without workflow_finished event";
+          engineFailureTimestamps.set(item.baseUrl, Date.now());
+          console.warn(`⚠️ Stream finished without workflow_finished event on ${item.baseUrl}`);
+        }
+      } else {
+        lastStatus = response.status;
+        lastErrorText = await response.text();
+        engineFailureTimestamps.set(item.baseUrl, Date.now());
+        console.warn(`⚠️ Dify API returned ${response.status} from ${item.baseUrl}, trying failover...`);
+      }
+    } catch (err) {
+      console.warn(`⚠️ Dify fetch exception on ${item.baseUrl}: ${err.message}`);
+      lastErrorText = err.message;
+      engineFailureTimestamps.set(item.baseUrl, Date.now());
+    }
+  }
+
+  return { ok: false, status: lastStatus, errorText: lastErrorText, triedUrls: uniqueCandidates.map(c => c.baseUrl), outboundIp };
+}
+
 module.exports = {
   DEFAULT_DIFY_CONFIG,
   FIRMWARE_UI_DICT,
   formatKw,
   getEffectiveDifyConfig,
   generateKwHelper,
-  getBuiltinKeys
+  getBuiltinKeys,
+  isPrivateOrLocalUrl,
+  getBuiltinDifyApps,
+  resolveBuiltinKey,
+  getOutboundIp,
+  executeDifyWithFailover,
+  BROWSER_USER_AGENT
 };
+

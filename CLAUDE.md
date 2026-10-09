@@ -187,3 +187,20 @@ When touching related code, check whether these specific bug classes might still
 - `package.json` `"type": "module"` makes the frontend ESM; all server-side files use `.cjs` to stay CommonJS.
 - `oxlint` is the linter (faster than eslint).
 - The `public/` folder is served by Vite as static assets, including `产品介绍.html`, `历史版本.html`, `操作说明.html`.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown files under `.scratch/tickets/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical 5-role triage vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`GLOSSARY.md` + `docs/adr/`). See `docs/agents/domain.md`.
+

@@ -10,23 +10,11 @@ const { TARGET_LANGUAGES, LEGACY_TO_NEW_LANG_MAP } = require('../config/constant
 const { createAuditLog } = require('../services/auditLogger.cjs');
 const { generateKwHelper } = require('../services/difyService.cjs');
 const ExcelJS = require('exceljs');
+const termRepo = require('../repositories/termRepository.cjs');
 
-// 批量 termIds 全集归属校验 (弥补只抽查 termIds[0] 的越权漏洞)。
-// 任一 id 不存在或不属于该用户所在项目 → 返回 false (路由层转 403)。
-// 系统管理员 (role==='admin') 直接放行, 与 requireTermOwnership 语义一致。
+// 批量 termIds 全集归属校验 (代理到 termRepository)
 async function requireAllTermsOwnership(userId, termIds, userRole) {
-  if (userRole === 'admin') return true;
-  if (!Array.isArray(termIds) || termIds.length === 0) return false;
-  const placeholders = termIds.map((_, i) => `$${i + 1}`).join(',');
-  const row = await db.queryOne(
-    `SELECT COUNT(DISTINCT t.id) as cnt FROM terms t
-     JOIN versions v ON t.version_id = v.id
-     JOIN project_members pm ON pm.project_id = v.project_id
-     WHERE t.id IN (${placeholders}) AND pm.user_id = $${termIds.length + 1}
-       AND pm.role IN ('owner', 'editor')`,
-    [...termIds, userId]
-  );
-  return parseInt(row?.cnt || 0, 10) === termIds.length;
+  return await termRepo.verifyTermsOwnership(userId, termIds, userRole);
 }
 
 // GET /api/tables/:tableId/records - 读取特定版本下的所有词条数据 (分页)
@@ -38,139 +26,22 @@ router.get('/tables/:tableId/records', authenticateToken, async (req, res) => {
   const untranslated = req.query.untranslated === 'true' || req.query.untranslated === '1';
 
   try {
-    const dbType = getDbType();
-    let whereClause = 'WHERE version_id = $1';
-    const queryParams = [tableId];
-    let paramIndex = 2;
-
-    const rawSearch = (req.query.search || '').trim();
-    if (rawSearch) {
-      const tokens = rawSearch.split(/\s+/).filter(Boolean);
-      const escapeLike = (str) => str.replace(/([%_\\])/g, '\\$1');
-
-      if (dbType === 'sqlite') {
-        const tokenClauses = [];
-        for (const token of tokens) {
-          const p1 = paramIndex, p2 = paramIndex + 1, p3 = paramIndex + 2, p4 = paramIndex + 3, p5 = paramIndex + 4;
-          tokenClauses.push(`(kw LIKE $${p1} ESCAPE '\\' OR zh_cn LIKE $${p2} ESCAPE '\\' OR context LIKE $${p3} ESCAPE '\\' OR owner LIKE $${p4} ESCAPE '\\' OR translations LIKE $${p5} ESCAPE '\\')`);
-          const searchPattern = `%${escapeLike(token)}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-          paramIndex += 5;
-        }
-        if (tokenClauses.length > 0) {
-          whereClause += ` AND (${tokenClauses.join(' AND ')})`;
-        }
-      } else {
-        const tokenClauses = [];
-        for (const token of tokens) {
-          tokenClauses.push(`(kw ILIKE $${paramIndex} ESCAPE '\\' OR zh_cn ILIKE $${paramIndex} ESCAPE '\\' OR context ILIKE $${paramIndex} ESCAPE '\\' OR owner ILIKE $${paramIndex} ESCAPE '\\' OR translations::text ILIKE $${paramIndex} ESCAPE '\\')`);
-          queryParams.push(`%${escapeLike(token)}%`);
-          paramIndex++;
-        }
-        if (tokenClauses.length > 0) {
-          whereClause += ` AND (${tokenClauses.join(' AND ')})`;
-        }
-      }
-    }
-
-    if (statusFilter) {
-      if (statusFilter === 'DRAFT') {
-        whereClause += ` AND (status = 'DRAFT' OR status = 'PENDING_REVIEW' OR status = 'TRANSLATING')`;
-      } else {
-        whereClause += ` AND status = $${paramIndex}`;
-        queryParams.push(statusFilter);
-        paramIndex++;
-      }
-    }
-
-    if (untranslated) {
-      // 动态获取当前数据表对应项目配置的有效语种列表 (避免硬编码导致语种字段名不匹配)
-      const verRow = await db.queryOne('SELECT project_id FROM versions WHERE id = $1', [tableId]);
-      const projectId = verRow?.project_id || 'proj-default';
-      const langRows = await db.query(
-        'SELECT lang_name FROM languages WHERE project_id = $1 ORDER BY display_order ASC',
-        [projectId]
-      );
-      const activeLangs = (langRows && langRows.length > 0)
-        ? langRows.map(l => l.lang_name)
-        : TARGET_LANGUAGES;
-
-      if (activeLangs.length > 0) {
-        if (dbType === 'sqlite') {
-          const conditions = activeLangs.map(lang => `(json_extract(translations, '$.${lang}') IS NULL OR json_extract(translations, '$.${lang}') = '')`);
-          whereClause += ` AND (${conditions.join(' OR ')})`;
-        } else {
-          const conditions = activeLangs.map((lang, idx) => {
-            const p = paramIndex + idx;
-            return `(translations->>$${p} IS NULL OR translations->>$${p} = '')`;
-          });
-          queryParams.push(...activeLangs);
-          paramIndex += activeLangs.length;
-          whereClause += ` AND (${conditions.join(' OR ')})`;
-        }
-      }
-    }
-
-    const sortBy = req.query.sortBy || 'default';
-    const sortOrder = (req.query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
-
-    let orderByClause = 'ORDER BY sort_order ASC, created_at ASC, id ASC';
-    if (sortBy === 'updated_at' || sortBy === 'updatedAt') {
-      orderByClause = `ORDER BY COALESCE(updated_at, created_at, '') ${sortOrder}, id ${sortOrder}`;
-    } else if (sortBy === 'created_at' || sortBy === 'createdAt') {
-      orderByClause = `ORDER BY COALESCE(created_at, updated_at, '') ${sortOrder}, id ${sortOrder}`;
-    } else if (sortBy === 'kw' || sortBy === 'KW') {
-      orderByClause = `ORDER BY kw ${sortOrder}, id ${sortOrder}`;
-    } else if (sortBy === 'zh_cn' || sortBy === 'zhCn') {
-      orderByClause = `ORDER BY zh_cn ${sortOrder}, id ${sortOrder}`;
-    } else if (sortBy === 'status') {
-      orderByClause = `ORDER BY status ${sortOrder}, id ${sortOrder}`;
-    }
-
-    const countQuery = `SELECT COUNT(*) as total FROM terms ${whereClause}`;
-    const dataQuery = `SELECT * FROM terms ${whereClause} ${orderByClause} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    
-    const countResult = await db.queryOne(countQuery, queryParams);
-    const total = parseInt(countResult?.total || 0, 10);
-    
-    const dataParams = [...queryParams, pageSize, (page - 1) * pageSize];
-    const terms = await db.query(dataQuery, dataParams);
-
-    const formatted = terms.map(term => {
-      const trans = parseJsonField(term.translations);
-      const transMeta = parseJsonField(term.translations_meta);
-
-      return {
-        recordId: term.id,
-        createdAt: term.created_at,
-        updatedAt: term.updated_at,
-        isLocked: term.is_locked || 0,
-        lockedBy: term.locked_by || '',
-        lockedAt: term.locked_at || '',
-        status: term.status || 'DRAFT',
-        rejectReason: term.reject_reason || '',
-        translationsMeta: transMeta,
-        fields: {
-          KW: term.kw && term.kw.startsWith('__EMPTY_KW_') ? '' : term.kw,
-          'CN（中文）': term.zh_cn,
-          所在页面: term.context || '',
-          字号类别: term.owner || '',
-          ...trans
-        }
-      };
-    });
-
-    res.json({
-      total,
+    const result = await termRepo.getTermsByTable(tableId, {
       page,
       pageSize,
-      records: formatted
+      statusFilter,
+      untranslated,
+      search: req.query.search,
+      sortBy: req.query.sortBy,
+      sortOrder: req.query.sortOrder
     });
+    res.json(result);
   } catch (err) {
     console.error('获取词条数据失败:', err);
     res.status(500).json({ error: '服务器内部错误，请稍后重试。' });
   }
 });
+
 
 
 // GET /api/terms/by-kw-version - 按 KW 和版本名查找词条及其快照
@@ -244,7 +115,7 @@ router.put('/terms/:termId', authenticateToken, async (req, res) => {
     if (!(await requireTermOwnership(req.user.id, termId))) {
       return res.status(403).json({ error: 'FORBIDDEN', message: '您无权修改此词条。' });
     }
-    const term = await db.queryOne('SELECT * FROM terms WHERE id = $1', [termId]);
+    const term = await termRepo.getTermById(termId);
     if (!term) {
       return res.status(404).json({ error: '词条不存在' });
     }
@@ -255,10 +126,7 @@ router.put('/terms/:termId', authenticateToken, async (req, res) => {
     }
 
     if (finalKw && !finalKw.startsWith('__EMPTY_KW_') && finalKw !== term.kw) {
-      const duplicate = await db.queryOne(
-        'SELECT id, zh_cn FROM terms WHERE version_id = $1 AND LOWER(kw) = LOWER($2) AND id <> $3',
-        [term.version_id, finalKw, termId]
-      );
+      const duplicate = await termRepo.findDuplicateKw(term.version_id, finalKw, termId);
       if (duplicate) {
         return res.status(409).json({
           error: 'DUPLICATE_KW',
@@ -288,68 +156,27 @@ router.put('/terms/:termId', authenticateToken, async (req, res) => {
       updatedTrans = JSON.stringify(inputTrans || {});
     }
 
-    const dbTransStr = typeof term.translations === 'string' ? term.translations : JSON.stringify(term.translations || {});
-    const isTransChanged = dbTransStr !== updatedTrans;
-    const isZhChanged = finalZhCn && term.zh_cn !== finalZhCn;
-    const isKwChanged = finalKw !== term.kw;
+    const updateRes = await termRepo.updateTermWithOptimisticLock(termId, {
+      finalKw,
+      finalContext,
+      finalOwner,
+      finalZhCn,
+      updatedTrans,
+      translationsMeta,
+      oldUpdatedAt
+    }, req.user.id, req.user.role);
 
-    let nextStatus = 'PENDING_REVIEW';
-    if (req.user.role === 'admin') {
-      nextStatus = 'APPROVED';
+    if (updateRes.notFound) {
+      return res.status(404).json({ error: '词条不存在' });
     }
-
-    const updateResult = await db.transaction(async (tx) => {
-      if (isTransChanged || isZhChanged || isKwChanged) {
-        const snapshotId = crypto.randomUUID();
-        if (dbType === 'postgres') {
-          await tx.run(
-            `INSERT INTO term_snapshots (id, term_id, version_id, kw, zh_cn, translations, created_at, created_by)
-             VALUES ($1, $2, $3, $4, $5, $6::jsonb, NOW(), $7)`,
-            [snapshotId, termId, term.version_id, term.kw, term.zh_cn, dbTransStr, req.user.id]
-          );
-        } else {
-          const snapNow = new Date().toISOString();
-          await tx.run(
-            `INSERT INTO term_snapshots (id, term_id, version_id, kw, zh_cn, translations, created_at, created_by)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [snapshotId, termId, term.version_id, term.kw, term.zh_cn, dbTransStr, snapNow, req.user.id]
-          );
-        }
-      }
-
-      if (dbType === 'postgres') {
-        return await tx.run(
-          `UPDATE terms
-           SET kw = $1, context = $2, owner = $3, zh_cn = $4, translations = $5::jsonb, translations_meta = $6::jsonb, status = $7, reject_reason = NULL, updated_at = NOW(), updated_by = $8
-           WHERE id = $9 AND date_trunc('ms', updated_at) = date_trunc('ms', $10::timestamptz) AND is_locked IS NOT TRUE`,
-          [finalKw, finalContext, finalOwner, finalZhCn, updatedTrans, JSON.stringify(translationsMeta || {}), nextStatus, req.user.id, termId, oldUpdatedAt]
-        );
-      } else {
-        const nowIso = new Date().toISOString();
-        return await tx.run(
-          `UPDATE terms
-           SET kw = $1, context = $2, owner = $3, zh_cn = $4, translations = $5, translations_meta = $6, status = $7, reject_reason = NULL, updated_at = $8, updated_by = $9
-           WHERE id = $10 AND updated_at = $11 AND is_locked != 1`,
-          [finalKw, finalContext, finalOwner, finalZhCn, updatedTrans, JSON.stringify(translationsMeta || {}), nextStatus, nowIso, req.user.id, termId, oldUpdatedAt]
-        );
-      }
-    });
-
-    const affectedRows = updateResult.changes || 0;
-    if (affectedRows === 0) {
-      // The UPDATE may have missed for two reasons:
-      //   (a) optimistic-lock mismatch (someone else edited since this client fetched),
-      //   (b) the term was locked concurrently by an admin/owner.
-      // We re-read to tell them apart and return the appropriate status code so
-      // the UI can show the right recovery hint.
-      const fresh = await db.queryOne('SELECT is_locked FROM terms WHERE id = $1', [termId]);
-      if (fresh && (fresh.is_locked === 1 || fresh.is_locked === true)) {
-        return res.status(403).json({ error: 'LOCKED', message: '该词条目前已被锁定，无法修改。如需变更请联系管理员解锁！' });
-      }
+    if (updateRes.isLocked) {
+      return res.status(403).json({ error: 'LOCKED', message: '该词条目前已被锁定，无法修改。如需变更请联系管理员解锁！' });
+    }
+    if (updateRes.conflict) {
       return res.status(409).json({ error: 'CONCURRENCY_CONFLICT', message: '该词条已被其他人修改，请刷新后重试。' });
     }
 
-    const newTerm = await db.queryOne('SELECT * FROM terms WHERE id = $1', [termId]);
+    const newTerm = updateRes.term;
 
     // 记录审计修改日志
     try {
