@@ -1,0 +1,104 @@
+import React from 'react';
+
+export default class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('[ErrorBoundary] 未捕获的渲染错误:', error, errorInfo);
+    if (error?.message?.includes('dynamically imported module') || error?.message?.includes('Importing a module script')) {
+      const isReloaded = sessionStorage.getItem('auto_reloaded_for_chunk_error');
+      if (!isReloaded) {
+        sessionStorage.setItem('auto_reloaded_for_chunk_error', 'true');
+        window.location.reload();
+      }
+    }
+  }
+
+  componentDidMount() {
+    this.handleUnhandledRejection = (event) => {
+      console.error('[ErrorBoundary] 未捕获的 Promise 拒绝:', event.reason);
+      const msg = String(event.reason?.message || event.reason || '');
+      if (msg.includes('dynamically imported module') || msg.includes('Importing a module script')) {
+        const isReloaded = sessionStorage.getItem('auto_reloaded_for_chunk_error');
+        if (!isReloaded) {
+          sessionStorage.setItem('auto_reloaded_for_chunk_error', 'true');
+          window.location.reload();
+        }
+      }
+    };
+    window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          background: 'var(--bg-primary, #0f1117)',
+          color: 'var(--text-primary, #e5e7eb)',
+          padding: '2rem',
+          textAlign: 'center',
+        }}>
+          <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+            {this.state.error?.message?.includes('dynamically imported module') ? '系统已成功发布新版本！' : 'GlossaHub 遇到了一个错误'}
+          </h2>
+          <p style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary, #9ca3af)', fontSize: '0.85rem' }}>
+            {this.state.error?.message?.includes('dynamically imported module') 
+              ? '发现新版本发布，请点击下方“刷新页面”加载最新代码。' 
+              : '请刷新页面重试。如果问题持续，请联系管理员。'}
+          </p>
+          {this.state.error?.message && (
+            <div style={{
+              margin: '0 0 1.5rem 0',
+              padding: '0.5rem 1rem',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '6px',
+              color: '#f87171',
+              fontSize: '0.75rem',
+              fontFamily: 'monospace',
+              maxWidth: '600px',
+              wordBreak: 'break-all'
+            }}>
+              {String(this.state.error.message)}
+            </div>
+          )}
+          <button
+            onClick={() => {
+              sessionStorage.removeItem('auto_reloaded_for_chunk_error');
+              window.location.reload();
+            }}
+            style={{
+              padding: '0.6rem 1.5rem',
+              background: 'var(--accent, #6366f1)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+            }}
+          >
+            刷新页面
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
