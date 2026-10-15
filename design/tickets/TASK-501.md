@@ -6,7 +6,7 @@
 *   **优先级**：`P0 (Blocker)`
 *   **估算工时**：`4d (32h)`
 *   **责任角色**：后端 / AI 工程师
-*   **当前状态**：`[BACKLOG]`
+*   **当前状态**：`[DONE]` (已在多模型 AI 直连网关与 /api/projects/:projectId/ai-test 探测中交付，支持 DeepSeek/OpenAI/Qwen/离线词库快速降级)
 *   **前置依赖**：[`TASK-201`](./TASK-201.md)
 
 ---

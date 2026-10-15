@@ -6,7 +6,7 @@
 *   **优先级**：`P0 (Blocker)`
 *   **估算工时**：`3d (24h)`
 *   **责任角色**：后端高级工程师
-*   **当前状态**：`[BACKLOG]`
+*   **当前状态**：`[DONE]` (已在批处理调度服务 termBatchService 与 jsonRepair 中交付，包含 DeepSeek <think> 思维链自动剥离、JSON 容错修复与并发控制)
 *   **前置依赖**：[`TASK-501`](./TASK-501.md)
 
 ---
