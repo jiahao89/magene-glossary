@@ -3,11 +3,11 @@ GlossaHub v1.5 全量 API 集成测试 (单次登录)
 覆盖: 认证/Dashboard/版本CRUD/sync-table/锁定/语种/词汇库/日志/回收站/调试状态
       /用户管理+RBAC/AI翻译TM Bypass+Prompt Injection/模糊匹配/健康检查/clean-empty/sync
 """
-import json, urllib.request, urllib.error, time, uuid, sqlite3
+import json, urllib.request, urllib.error, time, uuid, sqlite3, os
 
 BASE = "http://localhost:3001"
 PID = "proj-default"
-DB_PATH = "/Users/jacko/Projects/glossa-hub/glossahub.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glossahub.db")
 
 def api(method, path, token=None, data=None):
     headers = {"Content-Type": "application/json"}

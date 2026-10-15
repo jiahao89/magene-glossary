@@ -34,11 +34,12 @@ const { parse } = require('pg-connection-string');
 async function main() {
   console.log('\n🚀 [PG-INIT] 开始连接 PostgreSQL 数据库并执行初始化...');
   
-  let pgConfig = {};
+  let pgHost = 'localhost';
   try {
-    pgConfig = parse(pgUrl);
+    const pgConfig = parse(pgUrl);
+    pgHost = pgConfig.host || 'localhost';
   } catch {
-    pgConfig = {};
+    // fallback
   }
 
   const isSupabase = pgUrl.includes('supabase');
@@ -54,6 +55,7 @@ async function main() {
     const verRes = await pool.query('SELECT version(), current_database(), current_user');
     const info = verRes.rows[0];
     console.log(`✅ 数据库连接成功:`);
+    console.log(`   - 数据库主机: ${pgHost}`);
     console.log(`   - 数据库名: ${info.current_database}`);
     console.log(`   - 登录用户: ${info.current_user}`);
     console.log(`   - 内核版本: ${info.version.split(' ')[0]} ${info.version.split(' ')[1]}`);

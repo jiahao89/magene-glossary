@@ -1,4 +1,4 @@
-const { db, getDbType } = require('../config/db.cjs');
+const { db } = require('../config/db.cjs');
 const { getCachedGlossaryTerms } = require('./glossaryCache.cjs');
 
 // 预置固件、IoT与硬件交互界面高频中英对照词典 (极速离线命中)
@@ -153,7 +153,6 @@ async function translateTerm({ projectId, chineseText, context = '', targetLangu
   const missingLanguages = [];
 
   // 1. 本地词汇库 (Glossary) 精准匹配 (零网络延迟, 100% 符合专有名词标准)
-  let glossaryMatches = {};
   if (projectId) {
     try {
       const gTerms = await getCachedGlossaryTerms(projectId);
@@ -209,9 +208,7 @@ async function translateTerm({ projectId, chineseText, context = '', targetLangu
 
   // 3. 调用大模型进行翻译
   const config = await getEffectiveAiConfig(projectId);
-  let aiSource = 'ai';
   let totalTokens = 0;
-  let usedProvider = config.provider;
 
   // 分支 A: OpenAI / DeepSeek 兼容标准 API 直连
   if (config.provider === 'openai' && config.openai.apiKey) {

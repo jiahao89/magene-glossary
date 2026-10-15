@@ -6,11 +6,10 @@ const { aiTranslateLimiter } = require('../middleware/rateLimiters.cjs');
 const { 
   getEffectiveDifyConfig, 
   generateKwHelper, 
-  getBuiltinKeys,
   isPrivateOrLocalUrl,
   getBuiltinDifyApps,
   resolveBuiltinKey,
-  getOutboundIp,
+  executeDifyWithFailover,
   BROWSER_USER_AGENT
 } = require('../services/difyService.cjs');
 const { getEffectiveAiConfig, translateTerm, generateKw, testAiConnectivity } = require('../services/aiTranslationService.cjs');

@@ -96,7 +96,6 @@ router.get('/terms/by-kw-version', authenticateToken, async (req, res) => {
 router.put('/terms/:termId', authenticateToken, async (req, res) => {
   const { termId } = req.params;
   const { kw, context, owner, zh_cn, translations, translationsMeta, oldUpdatedAt } = req.body;
-  const dbType = getDbType();
 
   if (!oldUpdatedAt) {
     return res.status(400).json({ error: '必须包含旧修改时间戳 (oldUpdatedAt) 以进行并发校验' });
